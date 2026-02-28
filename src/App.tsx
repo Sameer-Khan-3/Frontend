@@ -1,53 +1,27 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Signup from "./pages/Signup";
+import Signin from "./pages/Signin";
 
-const BACKEND =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 function App() {
-  const [status, setStatus] = useState<string>("Checking backend...");
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        const response = await fetch(`${BACKEND}/health`);
-
-        if (!response.ok) {
-          throw new Error("Backend not responding");
-        }
-
-        const data = await response.json();
-        setStatus(`✅ Backend Status: ${data.status}`);
-      } catch (error) {
-        console.error(error);
-        setStatus("❌ Backend not reachable");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkBackend();
-  }, []);
-
   return (
-    <div style={styles.container}>
-      <h1>IAM System Frontend</h1>
+    <BrowserRouter>
+      <Routes>
+        {/* Default route */}
+        <Route path="/" element={<Navigate to="/signup" />} />
 
-      <p>
-        Backend URL: <strong>{BACKEND}</strong>
-      </p>
+        {/* Signup page */}
+        <Route path="/signup" element={<Signup />} />
 
-      {loading ? <p>Checking connection...</p> : <p>{status}</p>}
-    </div>
+        {/* Signin page */}
+        <Route path="/signin" element={<Signin />} />
+
+        {/* Fallback for unmatched routes */}
+        <Route path="*" element={<div>404 Not Found</div>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-const styles = {
-  container: {
-    fontFamily: "system-ui",
-    padding: "40px",
-    textAlign: "center" as const,
-  },
-};
 
 export default App;
