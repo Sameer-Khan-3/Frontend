@@ -43,7 +43,7 @@ const Signin = () => {
       if (role === 'Admin' || role === 'SuperAdmin') {
         navigate('/admin/dashboard');
       } else {
-        navigate('/user/dashboard');
+        navigate('/dashboard');
       }
 
     } catch (err: any) {
