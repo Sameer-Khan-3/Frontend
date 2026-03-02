@@ -12,3 +12,7 @@ TypeScript
 Vite
 Tailwind CSS
 Fetch API / Axios (for API calls)
+
+WEEK:4  Frontend  integraion with backend
+implementation:
+        Signup,login and forget password are have fully integrated and running
