@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
+import ForgetPassword from "./pages/ForgetPasswordPage";
 
 
 function App() {
@@ -16,6 +17,8 @@ function App() {
 
         {/* Signin page */}
         <Route path="/signin" element={<Signin />} />
+
+        <Route path="/forget-password" element={<ForgetPassword />} />
 
         {/* Fallback for unmatched routes */}
         <Route path="*" element={<div>404 Not Found</div>} />

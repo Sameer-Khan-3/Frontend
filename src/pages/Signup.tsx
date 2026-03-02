@@ -1,17 +1,16 @@
-import React, { useState, ChangeEvent} from "react";
-import { data, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Signup: React.FC = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [role, setRole] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload = { username, email, password, role };
+    const payload = { username, email, password };
 
     try {
       const res = await fetch("http://localhost:4000/api/auth/signup", {
@@ -20,14 +19,14 @@ const Signup: React.FC = () => {
         body: JSON.stringify(payload),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const error = await res.json();
-        setMessage(error.message || "Signup failed");
+        setMessage(data.message || "Signup failed");
         return;
       }
 
-      const data = await res.json();
-      setMessage(`Signup successful! Welcome, ${data.username}`);
+      setMessage(`Signup successful! Welcome, ${data.user.id}`);
       setUsername("");
       setEmail("");
       setPassword("");
@@ -35,20 +34,17 @@ const Signup: React.FC = () => {
       setMessage("Server error. Try again later.");
       console.error(err);
     }
-    console.log(data)
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-blue-100">
-      
       <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
-        
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           Create Account
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          
+
           <input
             type="text"
             placeholder="Full Name"
@@ -76,19 +72,6 @@ const Signup: React.FC = () => {
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none transition"
           />
 
-          <select
-            value={role}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setRole(e.target.value)
-            }
-            required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none transition bg-white"
-          >
-            <option value="">Select Role</option>
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
-          </select>
-
           <button
             type="submit"
             className="w-full py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 active:scale-95 transition duration-200"
@@ -105,7 +88,7 @@ const Signup: React.FC = () => {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
-          <Link to="/signin" className="text-indigo-600 font-medium cursor-pointer hover:underline">
+          <Link to="/signin" className="text-indigo-600 font-medium hover:underline">
             Login
           </Link>
         </p>
