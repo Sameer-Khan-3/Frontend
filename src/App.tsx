@@ -6,6 +6,9 @@ import Signin from "./pages/Signin";
 import ForgetPassword from "./pages/ForgetPasswordPage";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import NotFoundPage from "./pages/NotFoundPage";
+import ErrorPage from "./pages/ErrorPage";
+
 
 function App() {
   return (
@@ -26,7 +29,8 @@ function App() {
           }
         />
 
-        <Route path="*" element={<div>404 Not Found</div>} />
+        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </BrowserRouter>
   );

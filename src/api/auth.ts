@@ -1,4 +1,4 @@
-
+import { Roles } from "../types/roles";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
@@ -6,7 +6,7 @@ export const signup = async (data: {
   email: string;
   password: string;
   username: string;
-  role: string;
+  role: Roles;
 }) => {
   const response = await fetch(`${BASE_URL}/auth/signup`, {
     method: "POST",

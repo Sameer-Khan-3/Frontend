@@ -1,4 +1,3 @@
-// ForgetPasswordPage.tsx (new simplified version)
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,21 +9,33 @@ export default function ForgetPassword() {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+
+    // Reset errors and messages
+    setErrors({});
     setMessage("");
 
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    const newErrors: { [key: string]: string } = {};
+
+    // Validation
+    if (!email.trim()) newErrors.email = "Email is required";
+    if (!newPassword.trim()) newErrors.newPassword = "New Password is required";
+    if (!confirmPassword.trim()) newErrors.confirmPassword = "Confirm Password is required";
+    if (newPassword && confirmPassword && newPassword !== confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
+
     try {
       const response = await fetch(`${BASE_URL}/auth/reset-password-direct`, {
         method: "POST",
@@ -39,10 +50,13 @@ export default function ForgetPassword() {
       }
 
       setMessage("Password updated successfully! Redirecting to login...");
-      setTimeout(() => navigate("/signin"), 2000);
+      setEmail("");
+      setNewPassword("");
+      setConfirmPassword("");
 
+      setTimeout(() => navigate("/signin"), 2000);
     } catch (err: any) {
-      setError(err.message);
+      setErrors({ apiError: err.message });
     } finally {
       setLoading(false);
     }
@@ -51,54 +65,53 @@ export default function ForgetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800">
-          Reset Password
-        </h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800">Reset Password</h2>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className={`mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition ${
+                errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-500"
+              }`}
               placeholder="Enter your email"
             />
+            {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              New Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700">New Password</label>
             <input
               type="password"
-              required
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className={`mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition ${
+                errors.newPassword ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-500"
+              }`}
               placeholder="Enter new password"
             />
+            {errors.newPassword && <p className="text-red-600 text-sm mt-1">{errors.newPassword}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Confirm New Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
             <input
               type="password"
-              required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className={`mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition ${
+                errors.confirmPassword ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-500"
+              }`}
               placeholder="Confirm new password"
             />
+            {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
 
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {errors.apiError && <p className="text-red-600 text-sm text-center">{errors.apiError}</p>}
           {message && <p className="text-green-600 text-sm text-center">{message}</p>}
 
           <button
