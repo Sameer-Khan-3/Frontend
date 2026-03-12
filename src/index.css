@@ -1,1 +1,74 @@
 @import "tailwindcss";
+
+:root {
+  --bg: #f5f3ef;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --surface-3: #e7eef4;
+  --text: #0f172a;
+  --text-muted: #5b6472;
+  --border: #e2e8f0;
+  --accent: #0f766e;
+  --accent-strong: #0ea5a4;
+  --accent-soft: #dbf3ef;
+  --warning: #f59e0b;
+  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --shadow-strong: 0 24px 60px rgba(15, 23, 42, 0.12);
+  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.theme-dark {
+  --bg: #0b1220;
+  --surface: #0f172a;
+  --surface-2: #111c2e;
+  --surface-3: #172338;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: #243146;
+  --accent: #2dd4bf;
+  --accent-strong: #5eead4;
+  --accent-soft: rgba(45, 212, 191, 0.15);
+  --warning: #fbbf24;
+  --shadow-soft: 0 12px 30px rgba(2, 6, 23, 0.35);
+  --shadow-strong: 0 24px 60px rgba(2, 6, 23, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(900px 420px at 10% -10%, rgba(14, 165, 164, 0.18), transparent 60%),
+    radial-gradient(700px 340px at 100% 0%, rgba(245, 158, 11, 0.18), transparent 55%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--accent);
+}
+
+::selection {
+  background: rgba(14, 165, 164, 0.25);
+}
