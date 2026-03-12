@@ -1,30 +1,198 @@
-// pages/Dashboard.tsx
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+  DashboardMetrics,
+  fetchDashboardMetrics,
+} from "../services/dashboard.service";
+import { useAuth } from "../context/AuthContext";
 
-const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
+interface Role {
+  name: string;
+}
 
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // remove JWT
-    localStorage.removeItem("user");  // optional: remove user info
-    navigate("/signin");
+interface User {
+  id?: string;
+  username?: string;
+  email?: string;
+  role?: Role | null;
+  roles?: Role[];
+  isActive?: boolean;
+  createdAt?: string;
+  department?: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export default function Dashboard() {
+  const [employeeCount, setEmployeeCount] = useState(0);
+  const [managerCount, setManagerCount] = useState(0);
+  const [departmentCount, setDepartmentCount] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [inactiveUsers, setInactiveUsers] = useState(0);
+  const [recentUsers, setRecentUsers] = useState<User[]>([]);
+  const [topDepartments, setTopDepartments] = useState<
+    { id: string; name: string; count: number; manager?: string | null }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const { role } = useAuth();
+
+  const loadCounts = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const metrics: DashboardMetrics = await fetchDashboardMetrics();
+
+      setEmployeeCount(metrics.employeeCount ?? 0);
+      setManagerCount(metrics.managerCount ?? 0);
+      setDepartmentCount(metrics.departmentCount ?? 0);
+      setTotalUsers(metrics.totalUsers ?? 0);
+      setActiveUsers(metrics.activeUsers ?? 0);
+      setInactiveUsers(metrics.inactiveUsers ?? 0);
+      setRecentUsers(Array.isArray(metrics.recentUsers) ? metrics.recentUsers : []);
+      setTopDepartments(
+        Array.isArray(metrics.topDepartments) ? metrics.topDepartments : []
+      );
+    } catch (err) {
+      setEmployeeCount(0);
+      setManagerCount(0);
+      setDepartmentCount(0);
+      setTotalUsers(0);
+      setActiveUsers(0);
+      setInactiveUsers(0);
+      setRecentUsers([]);
+      setTopDepartments([]);
+      setError(err instanceof Error ? err.message : "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    loadCounts();
+  }, [role]);
+
+  if (loading) {
+    return <div className="text-center p-10">Loading dashboard...</div>;
+  }
+
+  const usersLabel = role === "Admin" ? "Total Users" : "Users (Your Dept)";
+  const activeLabel = role === "Admin" ? "Active Users" : "Active (Your Dept)";
+  const inactiveLabel = role === "Admin" ? "Inactive Users" : "Inactive (Your Dept)";
+  const cardClass =
+    "bg-(--surface) border border-(--border) p-5 rounded-lg shadow";
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md text-center">
-        <h1 className="text-3xl font-bold mb-4 text-gray-800">Dashboard</h1>
-        <p className="mb-6 text-gray-600">Welcome to your dashboard!</p>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-lg transition"
-        >
-          Logout
-        </button>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <p className="text-(--text-muted)">At-a-glance metrics</p>
+      </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className={cardClass}>
+          <div className="text-sm text-(--text-muted)">{usersLabel}</div>
+          <div className="text-3xl font-semibold mt-2">{totalUsers}</div>
+        </div>
+
+        <div className={cardClass}>
+          <div className="text-sm text-(--text-muted)">{activeLabel}</div>
+          <div className="text-3xl font-semibold mt-2">{activeUsers}</div>
+        </div>
+
+        <div className={cardClass}>
+          <div className="text-sm text-(--text-muted)">{inactiveLabel}</div>
+          <div className="text-3xl font-semibold mt-2">{inactiveUsers}</div>
+        </div>
+
+        <div className={cardClass}>
+          <div className="text-sm text-(--text-muted)">Employees</div>
+          <div className="text-3xl font-semibold mt-2">{employeeCount}</div>
+        </div>
+
+        <div className={cardClass}>
+          <div className="text-sm text-(--text-muted)">Managers</div>
+          <div className="text-3xl font-semibold mt-2">{managerCount}</div>
+        </div>
+
+        <div className={cardClass}>
+          <div className="text-sm text-(--text-muted)">Departments</div>
+          <div className="text-3xl font-semibold mt-2">{departmentCount}</div>
+        </div>
+
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className={cardClass}>
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold">Top Departments</div>
+            <div className="text-xs text-(--text-muted)">By headcount</div>
+          </div>
+          <div className="mt-4 space-y-3">
+            {topDepartments.map((dept) => (
+              <div
+                key={dept.id}
+                className="flex items-center justify-between rounded border border-(--border) px-3 py-2"
+              >
+                <div>
+                  <div className="font-medium">{dept.name}</div>
+                  <div className="text-xs text-(--text-muted)">
+                    Manager: {dept.manager || "Unassigned"}
+                  </div>
+                </div>
+                <div className="text-sm font-semibold">{dept.count}</div>
+              </div>
+            ))}
+            {topDepartments.length === 0 && (
+              <div className="text-sm text-(--text-muted)">
+                No departments available.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className={cardClass}>
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold">Recent Users</div>
+            <div className="text-xs text-(--text-muted)">Last 5</div>
+          </div>
+          <div className="mt-4 space-y-3">
+            {recentUsers.map((user) => (
+              <div
+                key={user.id || `${user.username}-${user.email}`}
+                className="flex items-center justify-between rounded border border-(--border) px-3 py-2"
+              >
+                <div>
+                  <div className="font-medium">{user.username || "User"}</div>
+                  <div className="text-xs text-(--text-muted)">
+                    {user.role?.name || "Unknown role"}
+                  </div>
+                </div>
+                <div className="text-xs text-(--text-muted)">
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "--"}
+                </div>
+              </div>
+            ))}
+            {recentUsers.length === 0 && (
+              <div className="text-sm text-(--text-muted)">
+                No recent users found.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
-};
+}
 
-export default Dashboard;
+
+

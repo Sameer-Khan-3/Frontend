@@ -1,6 +1,7 @@
 import { Roles } from "../types/roles";
+import { API_BASE_URL } from "./baseUrl";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const BASE_URL = API_BASE_URL;
 
 export const signup = async (data: {
   email: string;
@@ -46,3 +47,4 @@ export const login = async (data: {
 
   return response.json();
 };
+
