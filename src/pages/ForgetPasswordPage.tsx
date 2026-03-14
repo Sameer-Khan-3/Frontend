@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../api/baseUrl";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const BASE_URL = API_BASE_URL;
 
 export default function ForgetPassword() {
   const navigate = useNavigate();
@@ -63,20 +64,20 @@ export default function ForgetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800">Reset Password</h2>
+    <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text)">
+      <div className="bg-(--surface) shadow-lg rounded-xl p-8 w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center">Reset Password</h2>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-(--text-muted)">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-500"
+              className={`mt-1 w-full px-3 py-2 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                errors.email ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-500"
               }`}
               placeholder="Enter your email"
             />
@@ -84,13 +85,13 @@ export default function ForgetPassword() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">New Password</label>
+            <label className="block text-sm font-medium text-(--text-muted)">New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className={`mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                errors.newPassword ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-500"
+              className={`mt-1 w-full px-3 py-2 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                errors.newPassword ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-500"
               }`}
               placeholder="Enter new password"
             />
@@ -98,13 +99,13 @@ export default function ForgetPassword() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+            <label className="block text-sm font-medium text-(--text-muted)">Confirm New Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={`mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                errors.confirmPassword ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-500"
+              className={`mt-1 w-full px-3 py-2 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                errors.confirmPassword ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-500"
               }`}
               placeholder="Confirm new password"
             />
@@ -123,7 +124,7 @@ export default function ForgetPassword() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-(--text-muted)">
           Remember your password?{" "}
           <span
             onClick={() => navigate("/signin")}
@@ -136,3 +137,9 @@ export default function ForgetPassword() {
     </div>
   );
 }
+
+
+
+
+
+

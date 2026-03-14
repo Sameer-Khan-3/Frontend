@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../api/baseUrl";
 
-const VITE_API_URL = import.meta.env.VITE_API_URL
+const BASE_URL = API_BASE_URL;
 
 const Signup: React.FC = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +34,7 @@ const Signup: React.FC = () => {
     const payload = { username, email, password };
 
     try {
-      const res = await fetch(`${VITE_API_URL}/auth/signup`, {
+      const res = await fetch(`${BASE_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -43,8 +46,11 @@ const Signup: React.FC = () => {
         setMessage(data.message || "Signup failed");
         return;
       }
+      setMessage(`Signup successful! Redirecting to login...`);
 
-      setMessage(`Signup successful! Welcome, ${data.user.username}`);
+      setTimeout(() => {
+        navigate("/signin");
+      }, 1500);
       setUsername("");
       setEmail("");
       setPassword("");
@@ -56,9 +62,9 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-blue-100">
-      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text)">
+      <div className="w-full max-w-md bg-(--surface) shadow-2xl rounded-2xl p-8">
+        <h2 className="text-3xl font-bold text-center mb-6">
           Create Account
         </h2>
 
@@ -69,8 +75,8 @@ const Signup: React.FC = () => {
               placeholder="Full Name"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none transition ${
-                errors.username ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-400"
+              className={`w-full px-4 py-3 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
+                errors.username ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-400"
               }`}
             />
             {errors.username && <p className="text-red-600 text-sm mt-1">{errors.username}</p>}
@@ -82,8 +88,8 @@ const Signup: React.FC = () => {
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none transition ${
-                errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-400"
+              className={`w-full px-4 py-3 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
+                errors.email ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-400"
               }`}
             />
             {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
@@ -95,8 +101,8 @@ const Signup: React.FC = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none transition ${
-                errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-indigo-400"
+              className={`w-full px-4 py-3 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
+                errors.password ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-400"
               }`}
             />
             {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
@@ -116,7 +122,7 @@ const Signup: React.FC = () => {
           </p>
         )}
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-(--text-muted)">
           Already have an account?{" "}
           <Link to="/signin" className="text-indigo-600 font-medium hover:underline">
             Login
@@ -128,3 +134,9 @@ const Signup: React.FC = () => {
 };
 
 export default Signup;
+
+
+
+
+
+
