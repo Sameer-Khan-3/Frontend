@@ -5,6 +5,7 @@ import {
   deleteDepartment as deleteDepartmentRequest,
   fetchDepartments as fetchDepartmentsRequest,
 } from "../services/department.service";
+import { Trash } from "lucide-react";
 
 interface Department {
   id: string;
@@ -120,7 +121,7 @@ export default function Departments() {
 
           <tbody>
             {departments.map((dept, index) => (
-              <tr key={dept.id} className="border-t border-(--border) hover:bg-[var(--surface-2)]">
+              <tr key={dept.id} className="border-t border-(--border) hover:bg-(--surface-2)">
                 <td className="p-3">{index + 1}</td>
 
                 <td className="p-3 font-medium">{dept.name}</td>
@@ -130,8 +131,9 @@ export default function Departments() {
                 <td className="p-3">
                   <button
                     onClick={() => deleteDepartment(dept.id)}
-                    className="text-red-600 hover:underline"
+                    className="inline-flex items-center gap-2 text-red-600 hover:underline"
                   >
+                    <Trash size={14}/>
                     Delete
                   </button>
                 </td>

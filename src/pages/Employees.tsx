@@ -6,6 +6,7 @@ import {
   fetchUsers as fetchUsersRequest,
 } from "../services/user.service";
 import { useAuth } from "../context/AuthContext";
+import { Edit, Trash } from "lucide-react";
 
 interface Role {
   id?: string;
@@ -548,12 +549,14 @@ export default function Employees() {
                     <button
                       onClick={() => setEditingUser(user)}
                       className="bg-blue-400 text-white px-3 py-1 rounded hover:bg-blue-700">
+                        <Edit size={10} />
                       Edit
                     </button>
 
                     <button
                       onClick={() => deleteUser(user.id)}
                       className="bg-red-400 text-white px-3 py-1 rounded hover:bg-red-700 ml-3">
+                        <Trash size={10}/>
                       Delete
                     </button>
                   </td>

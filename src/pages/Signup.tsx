@@ -62,11 +62,15 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text)">
-      <div className="w-full max-w-md bg-(--surface) shadow-2xl rounded-2xl p-8">
-        <h2 className="text-3xl font-bold text-center mb-6">
-          Create Account
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text) px-4">
+      <div className="w-full max-w-md bg-(--surface) border border-(--border) shadow-[var(--shadow-strong)] rounded-3xl p-8">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-[var(--shadow-soft)]">
+            RB
+          </div>
+          <h2 className="text-3xl font-semibold">Create your account</h2>
+          <p className="text-sm text-(--text-muted)">Start managing teams and access in minutes.</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -75,8 +79,8 @@ const Signup: React.FC = () => {
               placeholder="Full Name"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
-                errors.username ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-400"
+              className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
+                errors.username ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-(--accent-strong)"
               }`}
             />
             {errors.username && <p className="text-red-600 text-sm mt-1">{errors.username}</p>}
@@ -88,8 +92,8 @@ const Signup: React.FC = () => {
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
-                errors.email ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-400"
+              className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
+                errors.email ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-(--accent-strong)"
               }`}
             />
             {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
@@ -101,8 +105,8 @@ const Signup: React.FC = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
-                errors.password ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-400"
+              className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:ring-2 focus:outline-none transition ${
+                errors.password ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-(--accent-strong)"
               }`}
             />
             {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
@@ -110,7 +114,7 @@ const Signup: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 active:scale-95 transition duration-200"
+            className="w-full py-3 rounded-xl bg-(--accent) text-white font-semibold hover:bg-(--accent-strong) active:scale-95 transition duration-200"
           >
             Sign Up
           </button>
@@ -124,7 +128,7 @@ const Signup: React.FC = () => {
 
         <p className="mt-6 text-center text-sm text-(--text-muted)">
           Already have an account?{" "}
-          <Link to="/signin" className="text-indigo-600 font-medium hover:underline">
+          <Link to="/signin" className="text-(--accent) font-medium hover:underline">
             Login
           </Link>
         </p>

@@ -64,9 +64,15 @@ export default function ForgetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text)">
-      <div className="bg-(--surface) shadow-lg rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center">Reset Password</h2>
+    <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text) px-4">
+      <div className="bg-(--surface) border border-(--border) shadow-[var(--shadow-strong)] rounded-3xl p-8 w-full max-w-md">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-[var(--shadow-soft)]">
+            RB
+          </div>
+          <h2 className="text-2xl font-semibold">Reset Password</h2>
+          <p className="text-sm text-(--text-muted)">Securely update your account password.</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
 
@@ -76,8 +82,8 @@ export default function ForgetPassword() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 w-full px-3 py-2 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
-                errors.email ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-500"
+              className={`mt-1 w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                errors.email ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-(--accent-strong)"
               }`}
               placeholder="Enter your email"
             />
@@ -90,8 +96,8 @@ export default function ForgetPassword() {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className={`mt-1 w-full px-3 py-2 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
-                errors.newPassword ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-500"
+              className={`mt-1 w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                errors.newPassword ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-(--accent-strong)"
               }`}
               placeholder="Enter new password"
             />
@@ -104,8 +110,8 @@ export default function ForgetPassword() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={`mt-1 w-full px-3 py-2 border rounded-lg bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
-                errors.confirmPassword ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-indigo-500"
+              className={`mt-1 w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                errors.confirmPassword ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-(--accent-strong)"
               }`}
               placeholder="Confirm new password"
             />
@@ -118,7 +124,7 @@ export default function ForgetPassword() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+            className="w-full bg-(--accent) text-white py-3 rounded-xl hover:bg-(--accent-strong) transition disabled:opacity-50"
           >
             {loading ? "Updating..." : "Update Password"}
           </button>
@@ -128,7 +134,7 @@ export default function ForgetPassword() {
           Remember your password?{" "}
           <span
             onClick={() => navigate("/signin")}
-            className="text-indigo-600 font-medium cursor-pointer hover:underline"
+            className="text-(--accent) font-medium cursor-pointer hover:underline"
           >
             Back to Login
           </span>

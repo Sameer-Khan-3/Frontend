@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 import {
+  Building2,
+  Users,
+  UserCheck,
+  UserMinus,
+  Briefcase,
+  UserRound,
+} from "lucide-react";
+import {
   DashboardMetrics,
   fetchDashboardMetrics,
 } from "../services/dashboard.service";
@@ -37,7 +45,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const { role } = useAuth();
+  const { role, userName } = useAuth();
 
   const loadCounts = async () => {
     try {
@@ -83,52 +91,88 @@ export default function Dashboard() {
   const activeLabel = role === "Admin" ? "Active Users" : "Active (Your Dept)";
   const inactiveLabel = role === "Admin" ? "Inactive Users" : "Inactive (Your Dept)";
   const cardClass =
-    "bg-(--surface) border border-(--border) p-5 rounded-lg shadow";
+    "bg-(--surface) border border-(--border) p-5 rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-strong)] transition";
+
+  const metricCards = [
+    {
+      label: usersLabel,
+      value: totalUsers,
+      icon: Users,
+      accent: "bg-emerald-500/15 text-emerald-700",
+    },
+    {
+      label: activeLabel,
+      value: activeUsers,
+      icon: UserCheck,
+      accent: "bg-teal-500/15 text-teal-700",
+    },
+    {
+      label: inactiveLabel,
+      value: inactiveUsers,
+      icon: UserMinus,
+      accent: "bg-amber-500/15 text-amber-700",
+    },
+    {
+      label: "Employees",
+      value: employeeCount,
+      icon: UserRound,
+      accent: "bg-indigo-500/15 text-indigo-700",
+    },
+    {
+      label: "Managers",
+      value: managerCount,
+      icon: Briefcase,
+      accent: "bg-sky-500/15 text-sky-700",
+    },
+    {
+      label: "Departments",
+      value: departmentCount,
+      icon: Building2,
+      accent: "bg-rose-500/15 text-rose-700",
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-(--text-muted)">At-a-glance metrics</p>
+      <div className="flex flex-col gap-3 rounded-3xl border border-(--border) bg-(--surface) p-6 shadow-[var(--shadow-soft)] md:flex-row md:items-center md:justify-between">
+        <div>
+          <div className="text-xs uppercase tracking-[0.3em] text-(--text-muted)">
+            Insights
+          </div>
+          <h1 className="text-3xl font-semibold">Welcome back, {userName || "Team"}.</h1>
+          <p className="text-(--text-muted)">
+            Role-based metrics curated for {role || "your"} workspace.
+          </p>
+        </div>
+        <div className="rounded-2xl bg-(--surface-2) px-4 py-3 text-sm text-(--text-muted)">
+          Updated just now
+        </div>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-[var(--shadow-soft)]">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className={cardClass}>
-          <div className="text-sm text-(--text-muted)">{usersLabel}</div>
-          <div className="text-3xl font-semibold mt-2">{totalUsers}</div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {metricCards.map((card) => {
+          const Icon = card.icon;
 
-        <div className={cardClass}>
-          <div className="text-sm text-(--text-muted)">{activeLabel}</div>
-          <div className="text-3xl font-semibold mt-2">{activeUsers}</div>
-        </div>
-
-        <div className={cardClass}>
-          <div className="text-sm text-(--text-muted)">{inactiveLabel}</div>
-          <div className="text-3xl font-semibold mt-2">{inactiveUsers}</div>
-        </div>
-
-        <div className={cardClass}>
-          <div className="text-sm text-(--text-muted)">Employees</div>
-          <div className="text-3xl font-semibold mt-2">{employeeCount}</div>
-        </div>
-
-        <div className={cardClass}>
-          <div className="text-sm text-(--text-muted)">Managers</div>
-          <div className="text-3xl font-semibold mt-2">{managerCount}</div>
-        </div>
-
-        <div className={cardClass}>
-          <div className="text-sm text-(--text-muted)">Departments</div>
-          <div className="text-3xl font-semibold mt-2">{departmentCount}</div>
-        </div>
-
+          return (
+            <div key={card.label} className={cardClass}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-(--text-muted)">{card.label}</div>
+                  <div className="text-3xl font-semibold mt-2">{card.value}</div>
+                </div>
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.accent}`}>
+                  <Icon size={20} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -141,7 +185,7 @@ export default function Dashboard() {
             {topDepartments.map((dept) => (
               <div
                 key={dept.id}
-                className="flex items-center justify-between rounded border border-(--border) px-3 py-2"
+                className="flex items-center justify-between rounded-xl border border-(--border) bg-(--surface-2) px-4 py-3"
               >
                 <div>
                   <div className="font-medium">{dept.name}</div>
@@ -149,7 +193,7 @@ export default function Dashboard() {
                     Manager: {dept.manager || "Unassigned"}
                   </div>
                 </div>
-                <div className="text-sm font-semibold">{dept.count}</div>
+                <div className="text-sm font-semibold text-(--accent)">{dept.count}</div>
               </div>
             ))}
             {topDepartments.length === 0 && (
@@ -169,7 +213,7 @@ export default function Dashboard() {
             {recentUsers.map((user) => (
               <div
                 key={user.id || `${user.username}-${user.email}`}
-                className="flex items-center justify-between rounded border border-(--border) px-3 py-2"
+                className="flex items-center justify-between rounded-xl border border-(--border) bg-(--surface-2) px-4 py-3"
               >
                 <div>
                   <div className="font-medium">{user.username || "User"}</div>
