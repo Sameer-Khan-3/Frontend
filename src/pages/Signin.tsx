@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
-
+import { cognitoConfig } from "../src/cognitoConfig";
 
 const Signin = () => {
   const navigate = useNavigate();
@@ -14,6 +13,124 @@ const Signin = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [challengeSession, setChallengeSession] = useState<string | null>(null);
+  const [challengeRequired, setChallengeRequired] = useState<string[]>([]);
+  const [newPassword, setNewPassword] = useState('');
+  const [challengeGender, setChallengeGender] = useState('');
+  const [challengeName, setChallengeName] = useState('');
+
+  type CognitoLoginResult =
+    | { token: string }
+    | {
+        challenge: {
+          name: string;
+          session: string;
+          requiredAttributes: string[];
+        };
+      };
+
+  const loginWithCognito = async (
+    userEmail: string,
+    userPassword: string
+  ): Promise<CognitoLoginResult> => {
+    const res = await fetch("https://cognito-idp.us-east-1.amazonaws.com/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-amz-json-1.1",
+        "X-Amz-Target": "AWSCognitoIdentityProviderService.InitiateAuth",
+      },
+      body: JSON.stringify({
+        AuthFlow: "USER_PASSWORD_AUTH",
+        ClientId: cognitoConfig.ClientId,
+        AuthParameters: {
+          USERNAME: userEmail,
+          PASSWORD: userPassword,
+        },
+      }),
+    });
+
+    const body = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      const message =
+        body?.message ||
+        body?.__type ||
+        `Cognito login failed (${res.status})`;
+      throw new Error(message);
+    }
+
+    const token = body?.AuthenticationResult?.IdToken;
+    if (!token) {
+      const requiredAttributesRaw = body?.ChallengeParameters?.requiredAttributes;
+      let requiredAttributes: string[] = [];
+      if (typeof requiredAttributesRaw === "string") {
+        try {
+          const parsed = JSON.parse(requiredAttributesRaw);
+          if (Array.isArray(parsed)) {
+            requiredAttributes = parsed;
+          }
+        } catch {
+          requiredAttributes = [];
+        }
+      }
+
+      if (body?.ChallengeName && body?.Session) {
+        return {
+          challenge: {
+            name: body.ChallengeName as string,
+            session: body.Session as string,
+            requiredAttributes,
+          },
+        };
+      }
+
+      throw new Error("Cognito login failed: missing token");
+    }
+
+    return { token: token as string };
+  };
+
+  const respondToNewPasswordChallenge = async (
+    userEmail: string,
+    nextPassword: string,
+    session: string,
+    attributes: { gender?: string; name?: string }
+  ) => {
+    const res = await fetch("https://cognito-idp.us-east-1.amazonaws.com/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-amz-json-1.1",
+        "X-Amz-Target": "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
+      },
+      body: JSON.stringify({
+        ClientId: cognitoConfig.ClientId,
+        ChallengeName: "NEW_PASSWORD_REQUIRED",
+        Session: session,
+        ChallengeResponses: {
+          USERNAME: userEmail,
+          NEW_PASSWORD: nextPassword,
+          "userAttributes.gender": attributes.gender,
+          "userAttributes.name": attributes.name,
+        },
+      }),
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message =
+        body?.message ||
+        body?.__type ||
+        `Cognito challenge failed (${res.status})`;
+      throw new Error(message);
+    }
+
+    const token = body?.AuthenticationResult?.IdToken;
+    if (!token) {
+      throw new Error("Cognito challenge failed: missing token");
+    }
+
+    return token as string;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +140,21 @@ const Signin = () => {
 
     if (!email.trim()) newErrors.email = 'Email is required';
     if (!password.trim()) newErrors.password = 'Password is required';
+    if (challengeSession) {
+      if (!newPassword.trim()) newErrors.newPassword = 'New password is required';
+      if (
+        challengeRequired.includes("userAttributes.gender") &&
+        !challengeGender.trim()
+      ) {
+        newErrors.gender = 'Gender is required';
+      }
+      if (
+        challengeRequired.includes("userAttributes.name") &&
+        !challengeName.trim()
+      ) {
+        newErrors.name = 'Name is required';
+      }
+    }
 
     setErrors(newErrors);
 
@@ -31,14 +163,42 @@ const Signin = () => {
     setLoading(true);
 
     try {
-      const data = await login({ email, password });
-      signIn({ token: data.token, user: data.user });
+      if (challengeSession) {
+        const token = await respondToNewPasswordChallenge(
+          email,
+          newPassword,
+          challengeSession,
+          {
+            gender: challengeGender,
+            name: challengeName,
+          }
+        );
+        signIn({ token, user: { email } });
+        setChallengeSession(null);
+        setChallengeRequired([]);
+        setNewPassword('');
+        setChallengeGender('');
+        setChallengeName('');
+        navigate("/dashboard");
+        return;
+      }
+
+      const result = await loginWithCognito(email, password);
+      if ("challenge" in result) {
+        setChallengeSession(result.challenge.session);
+        setChallengeRequired(result.challenge.requiredAttributes);
+        setErrorMessage("Password update required. Please set a new password.");
+        return;
+      }
+
+      const token = result.token;
+      signIn({ token, user: { email } });
 
       navigate("/dashboard");
 
     } catch (err: any) {
       setErrorMessage(
-        err?.message || "Failed to fetch. Check API URL, backend status, and CORS."
+        err?.message || "Cognito login failed. Please check your credentials."
       );
     } finally {
       setLoading(false);
@@ -47,9 +207,9 @@ const Signin = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-(--bg) text-(--text) px-4">
-      <div className="w-full max-w-md p-8 bg-(--surface) rounded-3xl border border-(--border) shadow-[var(--shadow-strong)]">
+      <div className="w-full max-w-md p-8 bg-(--surface) rounded-3xl border border-(--border) shadow-(--shadow-strong)">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-[var(--shadow-soft)]">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-(--shadow-soft)">
             RB
           </div>
           <h2 className="text-2xl font-semibold">Welcome back</h2>
@@ -84,12 +244,58 @@ const Signin = () => {
             {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
           </div>
 
+          {challengeSession && (
+            <>
+              <div>
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                    errors.newPassword ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
+                  }`}
+                />
+                {errors.newPassword && <p className="text-red-600 text-sm mt-1">{errors.newPassword}</p>}
+              </div>
+
+              <div>
+                <select
+                  value={challengeGender}
+                  onChange={(e) => setChallengeGender(e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) focus:outline-none focus:ring-2 transition ${
+                    errors.gender ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
+                  }`}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="other">Other</option>
+                  <option value="unspecified">Prefer not to say</option>
+                </select>
+                {errors.gender && <p className="text-red-600 text-sm mt-1">{errors.gender}</p>}
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={challengeName}
+                  onChange={(e) => setChallengeName(e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
+                    errors.name ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
+                  }`}
+                />
+                {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
+              </div>
+            </>
+          )}
+
           <button type="submit"
             disabled={loading}
             className="w-full py-3 text-white font-semibold bg-(--accent) rounded-xl hover:bg-(--accent-strong) transition duration-200 disabled:opacity-50">
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing in..." : challengeSession ? "Set New Password" : "Sign In"}
           </button>
-
           {errorMessage && (
             <p className="text-sm text-center text-red-500 mt-2">{errorMessage}</p>
           )}

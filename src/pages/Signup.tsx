@@ -8,6 +8,7 @@ const BASE_URL = API_BASE_URL;
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
+  const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -22,6 +23,7 @@ const Signup: React.FC = () => {
 
     // Validate fields
     if (!username.trim()) newErrors.username = "Full Name is required";
+    if (!gender.trim()) newErrors.gender = "Gender is required";
     if (!email.trim()) newErrors.email = "Email is required";
     if (!password.trim()) newErrors.password = "Password is required";
 
@@ -31,7 +33,7 @@ const Signup: React.FC = () => {
     if (Object.keys(newErrors).length > 0) return;
 
     // Submit form
-    const payload = { username, email, password };
+    const payload = { username, gender, email, password };
 
     try {
       const res = await fetch(`${BASE_URL}/auth/signup`, {
@@ -50,7 +52,7 @@ const Signup: React.FC = () => {
 
       setTimeout(() => {
         navigate("/signin");
-      }, 1500);
+      }, 500);
       setUsername("");
       setEmail("");
       setPassword("");
@@ -63,9 +65,9 @@ const Signup: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text) px-4">
-      <div className="w-full max-w-md bg-(--surface) border border-(--border) shadow-[var(--shadow-strong)] rounded-3xl p-8">
+      <div className="w-full max-w-md bg-(--surface) border border-(--border) shadow-(--shadow-strong) rounded-3xl p-8">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-[var(--shadow-soft)]">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-(--shadow-soft)">
             RB
           </div>
           <h2 className="text-3xl font-semibold">Create your account</h2>
@@ -84,6 +86,23 @@ const Signup: React.FC = () => {
               }`}
             />
             {errors.username && <p className="text-red-600 text-sm mt-1">{errors.username}</p>}
+          </div>
+
+          <div>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) focus:ring-2 focus:outline-none transition ${
+                errors.gender ? "border-red-500 focus:ring-red-400" : "border-(--border) focus:ring-(--accent-strong)"
+              }`}
+            >
+              <option value="">Select Gender</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="other">Other</option>
+              <option value="unspecified">Prefer not to say</option>
+            </select>
+            {errors.gender && <p className="text-red-600 text-sm mt-1">{errors.gender}</p>}
           </div>
 
           <div>

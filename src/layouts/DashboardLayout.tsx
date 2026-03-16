@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: Props) {
         <Navbar />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto px-6 pb-10 pt-6">
+        <main className="flex-1 px-4 pb-2 pt-6">
           <div className="mx-auto w-full max-w-6xl space-y-6">
             {children}
           </div>

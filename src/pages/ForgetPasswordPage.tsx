@@ -55,7 +55,7 @@ export default function ForgetPassword() {
       setNewPassword("");
       setConfirmPassword("");
 
-      setTimeout(() => navigate("/signin"), 2000);
+      setTimeout(() => navigate("/signin"), 500);
     } catch (err: any) {
       setErrors({ apiError: err.message });
     } finally {
@@ -65,9 +65,9 @@ export default function ForgetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-(--bg) text-(--text) px-4">
-      <div className="bg-(--surface) border border-(--border) shadow-[var(--shadow-strong)] rounded-3xl p-8 w-full max-w-md">
+      <div className="bg-(--surface) border border-(--border) shadow-(--shadow-strong) rounded-3xl p-8 w-full max-w-md">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-[var(--shadow-soft)]">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-(--shadow-soft)">
             RB
           </div>
           <h2 className="text-2xl font-semibold">Reset Password</h2>

@@ -48,6 +48,7 @@ export default function Employees() {
   const [showCreateCard, setShowCreateCard] = useState(false);
   const [creating, setCreating] = useState(false);
   const [managerDepartmentId, setManagerDepartmentId] = useState<string | null>(null);
+  const [pendingDeleteUser, setPendingDeleteUser] = useState<User | null>(null);
   const [createForm, setCreateForm] = useState<CreateForm>({
     username: "",
     email: "",
@@ -59,10 +60,16 @@ export default function Employees() {
   const { role } = useAuth();
 
   const BASE_URL = API_BASE_URL;
-  const normalizeUser = (user: any): User => ({
-    ...user,
-    role: user.role ?? user.roles?.[0] ?? null,
-  });
+  const normalizeUser = (user: any): User => {
+    const roleValue = user.role ?? user.roles?.[0] ?? null;
+    const role =
+      typeof roleValue === "string" ? { name: roleValue } : roleValue;
+
+    return {
+      ...user,
+      role: role ?? null,
+    };
+  };
 
   const fetchUsers = async () => {
     try {
@@ -132,8 +139,6 @@ export default function Employees() {
   };
 
   const deleteUser = async (id: string) => {
-    if (!confirm("Delete this user?")) return;
-
     try {
       await deleteUserRequest(id);
       setUsers((prev) => prev.filter((u) => u.id !== id));
@@ -221,7 +226,7 @@ export default function Employees() {
         body: JSON.stringify({
           username: editingUser.username,
           email: editingUser.email,
-          role: editingUser.role?.name,
+          role: editingUser.role?.name || "Employee",
           isActive: editingUser.isActive,
           departmentId: editingUser.department?.id ?? null,
         }),
@@ -249,7 +254,7 @@ export default function Employees() {
         body: JSON.stringify({
           username: user.username,
           email: user.email,
-          role: user.role?.name,
+          role: user.role?.name || "Employee",
           isActive: !user.isActive,
           departmentId: user.department?.id ?? null,
         }),
@@ -278,7 +283,7 @@ export default function Employees() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
-    }, 2000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [search]);
@@ -360,11 +365,21 @@ export default function Employees() {
   };
 
   if (loading) {
-    return <div className="text-center p-10">Loading users...</div>;
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="flex flex-col items-center" role="status" aria-live="polite">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-(--border) border-t-(--accent) animate-spin"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Loading users</span>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">
           {role === "Admin" && "User Management"}
@@ -374,7 +389,7 @@ export default function Employees() {
 
         {(role === "Admin" || role === "Manager") && (
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+            className="bg-blue-600 text-white px-2 py-2 rounded-lg"
             onClick={() => setShowCreateCard((prev) => !prev)}
           >
             {showCreateCard ? "Close" : "Create User"}
@@ -394,9 +409,8 @@ export default function Employees() {
       )}
 
       {(role === "Admin" || role === "Manager") && showCreateCard && (
-        <div className="bg-(--surface) p-4 rounded-lg shadow space-y-4">
+        <div className="bg-(--surface) p-3 rounded-lg shadow space-y-2">
           <h2 className="text-lg font-semibold">Create User</h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-(--text-muted)">Name</label>
@@ -472,7 +486,7 @@ export default function Employees() {
       )}
 
 
-      <div className="bg-(--surface) p-4 rounded-lg shadow flex gap-4">
+      <div className="bg-(--surface) p-3 rounded-lg shadow flex gap-4">
         <input
           type="text" placeholder="Search users..."
           className="border border-(--border) bg-(--surface) text-(--text) placeholder:text-(--text-muted) px-3 py-2 rounded-lg w-64"
@@ -528,7 +542,7 @@ export default function Employees() {
 
                 <td className="p-3">
                   <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-sm">
-                    {user.role?.name}
+                    {user.role?.name || "Employee"}
                   </span>
                 </td>
 
@@ -546,19 +560,23 @@ export default function Employees() {
 
                 {role === "Admin" && (
                   <td className="p-3">
-                    <button
-                      onClick={() => setEditingUser(user)}
-                      className="bg-blue-400 text-white px-3 py-1 rounded hover:bg-blue-700">
-                        <Edit size={10} />
-                      Edit
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 cursor-pointer"
+                      >
+                        <Edit size={14} />
+                        Edit
+                      </button>
 
-                    <button
-                      onClick={() => deleteUser(user.id)}
-                      className="bg-red-400 text-white px-3 py-1 rounded hover:bg-red-700 ml-3">
-                        <Trash size={10}/>
-                      Delete
-                    </button>
+                      <button
+                        onClick={() => setPendingDeleteUser(user)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 cursor-pointer"
+                      >
+                        <Trash size={14} />
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 )}
                 {role === "Manager" && (
@@ -638,7 +656,7 @@ export default function Employees() {
 
       {editingUser && (
         <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center">
-          <div className="bg-(--surface) p-6 rounded-lg shadow w-96 space-y-4">
+          <div className="bg-(--surface) p-6 rounded-lg shadow w-96 space-y-4 cursor-pointer">
             <h2 className="text-lg font-semibold">Edit User</h2>
 
             <input
@@ -717,9 +735,42 @@ export default function Employees() {
 
               <button
                 onClick={handleUpdate}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingDeleteUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-(--surface) p-6 shadow-(--shadow-strong)">
+            <h3 className="text-lg font-semibold">Delete user?</h3>
+            <p className="mt-2 text-sm text-(--text-muted)">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-(--text)">
+                {pendingDeleteUser.username}
+              </span>
+              ? This action cannot be undone.
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                className="rounded-lg border border-(--border) px-4 py-2 text-sm font-semibold text-(--text)"
+                onClick={() => setPendingDeleteUser(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                onClick={async () => {
+                  await deleteUser(pendingDeleteUser.id);
+                  setPendingDeleteUser(null);
+                }}
+              >
+                Delete
               </button>
             </div>
           </div>

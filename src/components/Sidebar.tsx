@@ -51,12 +51,12 @@ const handleLogOut = () => {
   Navigate("/signin");
 };
   return (
-    <aside className="w-72 bg-(--surface) border-r border-(--border) h-screen flex flex-col text-(--text)">
+    <aside className="w-72 bg-(--surface) border-r border-(--border) min-h-screen flex flex-col text-(--text)">
 
       {/* Logo */}
       <div className="h-20 flex items-center justify-between border-b border-(--border) px-6">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-(--accent) text-white flex items-center justify-center font-semibold shadow-[var(--shadow-soft)]">
+          <div className="h-10 w-10 rounded-2xl bg-(--accent) text-white flex items-center justify-center font-semibold shadow-(--shadow-soft)">
             RB
           </div>
           <div>
@@ -79,7 +79,7 @@ const handleLogOut = () => {
                 onClick={() => Navigate(item.path)}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition cursor-pointer ${
                   isActive
-                    ? "bg-(--accent-soft) text-(--accent) shadow-[var(--shadow-soft)]"
+                    ? "bg-(--accent-soft) text-(--accent) shadow-(--shadow-soft)"
                     : "text-(--text) hover:bg-(--surface-2)"
                 }`}
               >

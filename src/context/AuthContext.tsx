@@ -52,6 +52,22 @@ const extractRoleValue = (raw: unknown): string | null => {
   return null;
 };
 
+const extractRoleFromTokenPayload = (payload: any): string | null => {
+  if (!payload) return null;
+  const direct =
+    extractRoleValue(payload?.role) ||
+    extractRoleValue(payload?.roles?.[0]);
+  if (direct) return direct;
+
+  const cognitoGroups = payload?.["cognito:groups"];
+  if (Array.isArray(cognitoGroups) && cognitoGroups.length > 0) {
+    const group = cognitoGroups[0];
+    return typeof group === "string" ? group : null;
+  }
+
+  return null;
+};
+
 const extractUserName = (user?: AuthUser | null) => {
   const name =
     (typeof user?.username === "string" && user.username.trim()) ||
@@ -59,6 +75,32 @@ const extractUserName = (user?: AuthUser | null) => {
     (typeof user?.email === "string" && user.email.trim()) ||
     "";
   return name || null;
+};
+
+const extractNameFromTokenPayload = (payload: any): string | null => {
+  if (!payload) return null;
+  const candidates = [
+    payload?.name,
+    payload?.given_name,
+    payload?.preferred_username,
+    payload?.email,
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+  return null;
+};
+
+const isLikelyEmail = (value: string) => value.includes("@");
+
+const pickDisplayName = (options: Array<string | null | undefined>) => {
+  const nonEmail = options.find(
+    (value) => value && !isLikelyEmail(value)
+  );
+  if (nonEmail) return nonEmail;
+  return options.find((value) => value && value.trim()) || "User";
 };
 
 const extractRoleFromUser = (user?: AuthUser | null) => {
@@ -69,9 +111,7 @@ const extractRoleFromUser = (user?: AuthUser | null) => {
 const resolveRoleFromToken = (token: string | null): AppRole => {
   if (!token) return "Employee";
   const payload = parseTokenPayload(token);
-  const tokenRole =
-    normalizeRole(extractRoleValue(payload?.role)) ||
-    normalizeRole(extractRoleValue(payload?.roles?.[0]));
+  const tokenRole = normalizeRole(extractRoleFromTokenPayload(payload));
   return tokenRole || "Employee";
 };
 
@@ -120,13 +160,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem("role", nextRole);
       setRole(nextRole);
 
-      const nextName = extractUserName(payload.user);
-      if (nextName) {
-        localStorage.setItem("username", nextName);
-        setUserName(nextName);
-      } else {
-        setUserName(getStoredName());
-      }
+      const tokenPayload = parseTokenPayload(payload.token);
+      const nextName = pickDisplayName([
+        extractUserName(payload.user),
+        extractNameFromTokenPayload(tokenPayload),
+        getStoredName(),
+      ]);
+      localStorage.setItem("username", nextName);
+      setUserName(nextName);
     },
     []
   );
@@ -135,7 +176,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!token) return;
     try {
       const payload = parseTokenPayload(token);
-      const userId = payload?.id;
+      const userId =
+        payload?.id ||
+        payload?.sub ||
+        payload?.userId ||
+        payload?.user_id ||
+        payload?.["cognito:username"];
       if (!userId) return;
 
       const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
@@ -147,13 +193,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!res.ok) return;
 
       const data = await res.json();
-      const nextName = extractUserName(data);
+      const nextName = pickDisplayName([
+        extractUserName(data),
+        extractNameFromTokenPayload(payload),
+        getStoredName(),
+      ]);
       const nextRole = extractRoleFromUser(data) || resolveRoleFromToken(token);
 
-      if (nextName) {
-        localStorage.setItem("username", nextName);
-        setUserName(nextName);
-      }
+      localStorage.setItem("username", nextName);
+      setUserName(nextName);
 
       localStorage.setItem("role", nextRole);
       setRole(nextRole);
@@ -198,8 +246,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
+      const tokenPayload = parseTokenPayload(token);
       setRole(resolveRole(token));
-      setUserName(getStoredName());
+      setUserName(
+        pickDisplayName([
+          extractNameFromTokenPayload(tokenPayload),
+          getStoredName(),
+        ])
+      );
       setLoading(true);
       await refreshProfile();
       if (active) {

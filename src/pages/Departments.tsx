@@ -72,7 +72,17 @@ export default function Departments() {
   }, []);
 
   if (loading) {
-    return <div className="p-10 text-center">Loading departments...</div>;
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="flex flex-col items-center" role="status" aria-live="polite">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-(--border) border-t-(--accent) animate-spin"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Loading departments</span>
+        </div>
+      </div>
+    );
   }
 
   return (

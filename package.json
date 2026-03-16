@@ -10,8 +10,9 @@
     "tailwind:init": "tailwindcss init -p"
   },
   "dependencies": {
-    "@auth0/auth0-react": "^2.15.1",
+    "amazon-cognito-identity-js": "^6.3.16",
     "axios": "^1.13.5",
+    "buffer": "^6.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",

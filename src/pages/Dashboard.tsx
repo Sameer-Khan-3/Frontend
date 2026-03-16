@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
   Building2,
   Users,
@@ -21,8 +21,8 @@ interface User {
   id?: string;
   username?: string;
   email?: string;
-  role?: Role | null;
-  roles?: Role[];
+  role?: Role | string | null;
+  roles?: Array<Role | string>;
   isActive?: boolean;
   createdAt?: string;
   department?: {
@@ -84,14 +84,24 @@ export default function Dashboard() {
   }, [role]);
 
   if (loading) {
-    return <div className="text-center p-10">Loading dashboard...</div>;
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="flex flex-col items-center" role="status" aria-live="polite">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-(--border) border-t-(--accent) animate-spin"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Loading dashboard</span>
+        </div>
+      </div>
+    );
   }
 
   const usersLabel = role === "Admin" ? "Total Users" : "Users (Your Dept)";
   const activeLabel = role === "Admin" ? "Active Users" : "Active (Your Dept)";
   const inactiveLabel = role === "Admin" ? "Inactive Users" : "Inactive (Your Dept)";
   const cardClass =
-    "bg-(--surface) border border-(--border) p-5 rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-strong)] transition";
+    "bg-(--surface) border border-(--border) p-4 rounded-2xl shadow-(--shadow-soft) hover:shadow-(--shadow-strong) transition";
 
   const metricCards = [
     {
@@ -133,13 +143,13 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-3xl border border-(--border) bg-(--surface) p-6 shadow-[var(--shadow-soft)] md:flex-row md:items-center md:justify-between">
+    <div className="space-y-3">
+      <div className="flex flex-col gap-3 rounded-3xl border border-(--border) bg-(--surface) p-5 shadow-(--shadow-soft) md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-xs uppercase tracking-[0.3em] text-(--text-muted)">
             Insights
           </div>
-          <h1 className="text-3xl font-semibold">Welcome back, {userName || "Team"}.</h1>
+          <h1 className="text-2xl font-semibold">Welcome back.</h1>
           <p className="text-(--text-muted)">
             Role-based metrics curated for {role || "your"} workspace.
           </p>
@@ -150,12 +160,12 @@ export default function Dashboard() {
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-[var(--shadow-soft)]">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-(--shadow-soft)">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {metricCards.map((card) => {
           const Icon = card.icon;
 
@@ -175,7 +185,7 @@ export default function Dashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className={cardClass}>
           <div className="flex items-center justify-between">
             <div className="text-lg font-semibold">Top Departments</div>
@@ -218,7 +228,9 @@ export default function Dashboard() {
                 <div>
                   <div className="font-medium">{user.username || "User"}</div>
                   <div className="text-xs text-(--text-muted)">
-                    {user.role?.name || "Unknown role"}
+                    {typeof user.role === "string"
+                      ? user.role
+                      : user.role?.name || "Employee"}
                   </div>
                 </div>
                 <div className="text-xs text-(--text-muted)">
@@ -237,6 +249,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-
-

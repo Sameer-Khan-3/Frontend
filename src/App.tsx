@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Departments from "./pages/Departments";
 import Employees from "./pages/Employees";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -49,6 +50,16 @@ function App() {
             <ProtectedRoute allowedRoles={["Admin"]}>
               <DashboardLayout>
                 <Departments />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <DashboardLayout>
+                <Settings />
               </DashboardLayout>
             </ProtectedRoute>
           }

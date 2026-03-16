@@ -13,7 +13,17 @@ const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
   const { isAuthenticated, loading, role } = useAuth();
 
   if (loading) {
-    return <div className="text-center p-10">Checking session...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-(--surface) text-(--text)">
+        <div className="flex flex-col items-center" role="status" aria-live="polite">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-(--border) border-t-(--accent) animate-spin"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Loading</span>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
