@@ -303,6 +303,21 @@ const Signin = () => {
           {errorMessage && (
             <p className="text-sm text-center text-red-500">{errorMessage}</p>
           )}
+
+          <p className="text-sm text-center mt-2 text-(--text-muted)">
+            <span
+            onClick={() =>navigate("/signup")}
+            className="text-(--accent) cursor-pointer hover:underline">
+            Don't have an account?{' '}
+            </span>
+          </p>
+          <p className="text-sm text-right mt-2 text-(--text-muted)">
+            <span
+              onClick={() => navigate("/forget-password")}
+              className="text-(--accent) cursor-pointer hover:underline">
+              Forgot Password?
+            </span>
+          </p>
         </form>
       </div>
     </div>
