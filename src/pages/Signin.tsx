@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { cognitoConfig } from "../src/cognitoConfig";
 
@@ -7,17 +7,18 @@ const Signin = () => {
   const navigate = useNavigate();
   const { signIn } = useAuth();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
   const [challengeSession, setChallengeSession] = useState<string | null>(null);
   const [challengeRequired, setChallengeRequired] = useState<string[]>([]);
-  const [newPassword, setNewPassword] = useState('');
-  const [challengeGender, setChallengeGender] = useState('');
-  const [challengeName, setChallengeName] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [challengeGender, setChallengeGender] = useState("");
+  const [challengeName, setChallengeName] = useState("");
 
   type CognitoLoginResult =
     | { token: string }
@@ -59,10 +60,15 @@ const Signin = () => {
       throw new Error(message);
     }
 
-    const token = body?.AuthenticationResult?.IdToken;
+    // ✅ IMPORTANT: Use AccessToken instead of IdToken
+    const token = body?.AuthenticationResult?.AccessToken;
+
     if (!token) {
-      const requiredAttributesRaw = body?.ChallengeParameters?.requiredAttributes;
+      const requiredAttributesRaw =
+        body?.ChallengeParameters?.requiredAttributes;
+
       let requiredAttributes: string[] = [];
+
       if (typeof requiredAttributesRaw === "string") {
         try {
           const parsed = JSON.parse(requiredAttributesRaw);
@@ -100,7 +106,8 @@ const Signin = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/x-amz-json-1.1",
-        "X-Amz-Target": "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
+        "X-Amz-Target":
+          "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
       },
       body: JSON.stringify({
         ClientId: cognitoConfig.ClientId,
@@ -116,6 +123,7 @@ const Signin = () => {
     });
 
     const body = await res.json().catch(() => ({}));
+
     if (!res.ok) {
       const message =
         body?.message ||
@@ -124,7 +132,9 @@ const Signin = () => {
       throw new Error(message);
     }
 
-    const token = body?.AuthenticationResult?.IdToken;
+    // ✅ IMPORTANT: Use AccessToken
+    const token = body?.AuthenticationResult?.AccessToken;
+
     if (!token) {
       throw new Error("Cognito challenge failed: missing token");
     }
@@ -135,24 +145,28 @@ const Signin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setErrorMessage('');
+    setErrorMessage("");
     const newErrors: { [key: string]: string } = {};
 
-    if (!email.trim()) newErrors.email = 'Email is required';
-    if (!password.trim()) newErrors.password = 'Password is required';
+    if (!email.trim()) newErrors.email = "Email is required";
+    if (!password.trim()) newErrors.password = "Password is required";
+
     if (challengeSession) {
-      if (!newPassword.trim()) newErrors.newPassword = 'New password is required';
+      if (!newPassword.trim())
+        newErrors.newPassword = "New password is required";
+
       if (
         challengeRequired.includes("userAttributes.gender") &&
         !challengeGender.trim()
       ) {
-        newErrors.gender = 'Gender is required';
+        newErrors.gender = "Gender is required";
       }
+
       if (
         challengeRequired.includes("userAttributes.name") &&
         !challengeName.trim()
       ) {
-        newErrors.name = 'Name is required';
+        newErrors.name = "Name is required";
       }
     }
 
@@ -173,29 +187,35 @@ const Signin = () => {
             name: challengeName,
           }
         );
+
         signIn({ token, user: { email } });
+
         setChallengeSession(null);
         setChallengeRequired([]);
-        setNewPassword('');
-        setChallengeGender('');
-        setChallengeName('');
+        setNewPassword("");
+        setChallengeGender("");
+        setChallengeName("");
+
         navigate("/dashboard");
         return;
       }
 
       const result = await loginWithCognito(email, password);
+
       if ("challenge" in result) {
         setChallengeSession(result.challenge.session);
         setChallengeRequired(result.challenge.requiredAttributes);
-        setErrorMessage("Password update required. Please set a new password.");
+        setErrorMessage(
+          "Password update required. Please set a new password."
+        );
         return;
       }
 
       const token = result.token;
+
       signIn({ token, user: { email } });
 
       navigate("/dashboard");
-
     } catch (err: any) {
       setErrorMessage(
         err?.message || "Cognito login failed. Please check your credentials."
@@ -212,108 +232,77 @@ const Signin = () => {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-(--accent) text-white font-semibold shadow-(--shadow-soft)">
             RB
           </div>
+
           <h2 className="text-2xl font-semibold">Welcome back</h2>
-          <p className="text-sm text-(--text-muted)">Sign in to your RBAC Studio workspace.</p>
+          <p className="text-sm text-(--text-muted)">
+            Sign in to your RBAC Studio workspace.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          <div>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
-                errors.email ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
-              }`}
-            />
-            {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
-          </div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 border rounded-xl"
+          />
 
-          <div>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
-                errors.password ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
-              }`}
-            />
-            {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 border rounded-xl"
+          />
 
           {challengeSession && (
             <>
-              <div>
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
-                    errors.newPassword ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
-                  }`}
-                />
-                {errors.newPassword && <p className="text-red-600 text-sm mt-1">{errors.newPassword}</p>}
-              </div>
+              <input
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-3 border rounded-xl"
+              />
 
-              <div>
-                <select
-                  value={challengeGender}
-                  onChange={(e) => setChallengeGender(e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) focus:outline-none focus:ring-2 transition ${
-                    errors.gender ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
-                  }`}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="female">Female</option>
-                  <option value="male">Male</option>
-                  <option value="other">Other</option>
-                  <option value="unspecified">Prefer not to say</option>
-                </select>
-                {errors.gender && <p className="text-red-600 text-sm mt-1">{errors.gender}</p>}
-              </div>
+              <select
+                value={challengeGender}
+                onChange={(e) => setChallengeGender(e.target.value)}
+                className="w-full px-4 py-3 border rounded-xl"
+              >
+                <option value="">Select Gender</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="other">Other</option>
+              </select>
 
-              <div>
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={challengeName}
-                  onChange={(e) => setChallengeName(e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-xl bg-(--surface) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 transition ${
-                    errors.name ? 'border-red-500 focus:ring-red-400' : 'border-(--border) focus:ring-(--accent-strong)'
-                  }`}
-                />
-                {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
-              </div>
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={challengeName}
+                onChange={(e) => setChallengeName(e.target.value)}
+                className="w-full px-4 py-3 border rounded-xl"
+              />
             </>
           )}
 
-          <button type="submit"
+          <button
+            type="submit"
             disabled={loading}
-            className="w-full py-3 text-white font-semibold bg-(--accent) rounded-xl hover:bg-(--accent-strong) transition duration-200 disabled:opacity-50">
-            {loading ? "Signing in..." : challengeSession ? "Set New Password" : "Sign In"}
+            className="w-full py-3 text-white bg-(--accent) rounded-xl"
+          >
+            {loading
+              ? "Signing in..."
+              : challengeSession
+              ? "Set New Password"
+              : "Sign In"}
           </button>
-          {errorMessage && (
-            <p className="text-sm text-center text-red-500 mt-2">{errorMessage}</p>
-          )}
-          <p className="text-sm text-center mt-2 text-(--text-muted)">
-            <span
-            onClick={() =>navigate("/signup")}
-            className="text-(--accent) cursor-pointer hover:underline">
-            Don't have an account?{' '}
-            </span>
-          </p>
-          <p className="text-sm text-right mt-2 text-(--text-muted)">
-            <span
-              onClick={() => navigate("/forget-password")}
-              className="text-(--accent) cursor-pointer hover:underline">
-              Forgot Password?
-            </span>
-          </p>
 
+          {errorMessage && (
+            <p className="text-sm text-center text-red-500">{errorMessage}</p>
+          )}
         </form>
       </div>
     </div>
@@ -321,9 +310,3 @@ const Signin = () => {
 };
 
 export default Signin;
-
-
-
-
-
-
