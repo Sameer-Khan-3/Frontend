@@ -14,7 +14,7 @@ export default function Navbar() {
   const { userName, role } = useAuth();
 
   return (
-    <header className="h-[72px] bg-(--surface) border-b border-(--border) flex items-center justify-between px-6 text-(--text) shadow-(--shadow-soft)">
+    <header className="fixed inset-x-0 left-72 top-0 z-30 flex h-[72px] items-center justify-between border-b border-(--border) bg-(--surface)/95 px-6 text-(--text) shadow-(--shadow-soft) backdrop-blur">
       {/* Search Bar */}
       <div className="hidden md:flex items-center w-1/2 max-w-xl rounded-2xl border border-(--border) bg-(--surface-2) px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
         <Search size={18} className="text-(--text-muted)" />

@@ -99,7 +99,7 @@ export default function Departments() {
       )}
 
       {/* Create Department */}
-      <div className="bg-(--surface) p-4 rounded-lg shadow flex gap-3">
+      <div className="flex flex-wrap gap-3 rounded-lg bg-(--surface) p-4 shadow">
         <input
           type="text"
           placeholder="Department name..."
@@ -118,8 +118,8 @@ export default function Departments() {
       </div>
 
       {/* Department Table */}
-      <div className="bg-(--surface) rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
+      <div className="overflow-x-auto rounded-lg bg-(--surface) shadow">
+        <table className="w-full min-w-[640px] text-left">
           <thead className="bg-(--surface-2)">
             <tr>
               <th className="p-3">S.No</th>

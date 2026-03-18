@@ -22,7 +22,6 @@ interface User {
   username?: string;
   email?: string;
   role?: Role | string | null;
-  roles?: Array<Role | string>;
   isActive?: boolean;
   createdAt?: string;
   department?: {

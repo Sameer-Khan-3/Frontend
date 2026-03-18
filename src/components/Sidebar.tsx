@@ -23,7 +23,7 @@ export default function Sidebar({ role }: SidebarProps) {
     {
       name: "User Management",
       icon: <Briefcase size={18} />,
-      roles: ["Admin", "Manager"],
+      roles: ["Admin", "Manager", "Employee"],
       path:"/employees",
     },
     {
@@ -51,10 +51,10 @@ const handleLogOut = () => {
   Navigate("/signin");
 };
   return (
-    <aside className="w-72 bg-(--surface) border-r border-(--border) min-h-screen flex flex-col text-(--text)">
+    <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-72 shrink-0 flex-col overflow-hidden border-r border-(--border) bg-(--surface) text-(--text)">
 
       {/* Logo */}
-      <div className="h-20 flex items-center justify-between border-b border-(--border) px-6">
+      <div className="flex h-20 items-center justify-between border-b border-(--border) px-6">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-2xl bg-(--accent) text-white flex items-center justify-center font-semibold shadow-(--shadow-soft)">
             RB
@@ -67,7 +67,7 @@ const handleLogOut = () => {
       </div>
 
       {/* Menu */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
         {menuItems
           .filter((item) => item.roles.includes(role))
           .map((item, index) => {

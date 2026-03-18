@@ -61,7 +61,7 @@ export default function Employees() {
 
   const BASE_URL = API_BASE_URL;
   const normalizeUser = (user: any): User => {
-    const roleValue = user.role ?? user.roles?.[0] ?? null;
+    const roleValue = user.role ?? null;
     const role =
       typeof roleValue === "string" ? { name: roleValue } : roleValue;
 
@@ -112,26 +112,18 @@ export default function Employees() {
         return;
       }
 
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const userId = payload?.id;
-      if (!userId) {
-        setManagerDepartmentId(null);
-        return;
-      }
-
-      const res = await fetch(`${BASE_URL}/users/${userId}`, {
+      const res = await fetch(`${BASE_URL}/users/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!res.ok) {
-        setManagerDepartmentId(null);
-        return;
+        throw new Error("Failed to fetch manager profile");
       }
 
-      const data = await res.json();
-      setManagerDepartmentId(data?.department?.id ?? null);
+      const user = await res.json();
+      setManagerDepartmentId(user?.department?.id || null);
     } catch (error) {
       console.error("Fetch manager department error:", error);
       setManagerDepartmentId(null);
@@ -172,7 +164,6 @@ export default function Employees() {
         body: JSON.stringify({
           username: createForm.username.trim(),
           email: createForm.email.trim(),
-          password: "Temp@123456",
         }),
       });
 
@@ -486,7 +477,7 @@ export default function Employees() {
       )}
 
 
-      <div className="bg-(--surface) p-3 rounded-lg shadow flex gap-4">
+      <div className="flex flex-wrap gap-4 rounded-lg bg-(--surface) p-3 shadow">
         <input
           type="text" placeholder="Search users..."
           className="border border-(--border) bg-(--surface) text-(--text) placeholder:text-(--text-muted) px-3 py-2 rounded-lg w-64"
@@ -516,8 +507,8 @@ export default function Employees() {
       </div>
 
       
-      <div className="bg-(--surface) rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
+      <div className="overflow-x-auto rounded-lg bg-(--surface) shadow">
+        <table className="w-full min-w-[720px] text-left">
           <thead className="bg-(--surface-2)">
             <tr>
               <th className="p-3">S.No</th>
@@ -563,7 +554,7 @@ export default function Employees() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setEditingUser(user)}
-                        className="inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 cursor-pointer"
+                        className="inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
                       >
                         <Edit size={14} />
                         Edit
@@ -571,7 +562,7 @@ export default function Employees() {
 
                       <button
                         onClick={() => setPendingDeleteUser(user)}
-                        className="inline-flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 cursor-pointer"
+                        className="inline-flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-100"
                       >
                         <Trash size={14} />
                         Delete

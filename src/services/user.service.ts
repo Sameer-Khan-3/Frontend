@@ -127,13 +127,7 @@ export const fetchManagerDepartmentId = async () => {
       return null;
     }
 
-    const payload = JSON.parse(atob(token.split(".")[1] || ""));
-    const userId = payload?.id;
-    if (!userId) {
-      return null;
-    }
-
-    const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const res = await fetch(`${API_BASE_URL}/users/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

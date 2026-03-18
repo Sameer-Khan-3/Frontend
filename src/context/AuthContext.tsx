@@ -15,7 +15,6 @@ type AuthUser = {
   name?: string;
   email?: string;
   role?: { name?: string } | string | null;
-  roles?: Array<{ name?: string } | string>;
 };
 
 type AuthContextValue = {
@@ -32,7 +31,8 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const getStoredName = () => localStorage.getItem("username") || "User";
+const getStoredName = () =>
+  localStorage.getItem("username") || localStorage.getItem("name") || "User";
 
 const parseTokenPayload = (token: string) => {
   try {
@@ -54,9 +54,7 @@ const extractRoleValue = (raw: unknown): string | null => {
 
 const extractRoleFromTokenPayload = (payload: any): string | null => {
   if (!payload) return null;
-  const direct =
-    extractRoleValue(payload?.role) ||
-    extractRoleValue(payload?.roles?.[0]);
+  const direct = extractRoleValue(payload?.role);
   if (direct) return direct;
 
   const cognitoGroups = payload?.["cognito:groups"];
@@ -104,8 +102,7 @@ const pickDisplayName = (options: Array<string | null | undefined>) => {
 };
 
 const extractRoleFromUser = (user?: AuthUser | null) => {
-  const rawRole = user?.role ?? user?.roles?.[0];
-  return normalizeRole(extractRoleValue(rawRole));
+  return normalizeRole(extractRoleValue(user?.role));
 };
 
 const resolveRoleFromToken = (token: string | null): AppRole => {
@@ -176,15 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!token) return;
     try {
       const payload = parseTokenPayload(token);
-      const userId =
-        payload?.id ||
-        payload?.sub ||
-        payload?.userId ||
-        payload?.user_id ||
-        payload?.["cognito:username"];
-      if (!userId) return;
-
-      const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      const res = await fetch(`${API_BASE_URL}/users/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

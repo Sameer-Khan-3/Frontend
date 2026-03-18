@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { cognitoConfig } from "../src/cognitoConfig";
 
 const Signin = () => {
   const navigate = useNavigate();
   const { signIn } = useAuth();
+  const cognitoUrl = import.meta.env.VITE_COGNITO_URL as string;
+  const cognitoClientId = import.meta.env.VITE_COGNITO_CLIENT_ID as string;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +35,7 @@ const Signin = () => {
     userEmail: string,
     userPassword: string
   ): Promise<CognitoLoginResult> => {
-    const res = await fetch("https://cognito-idp.us-east-1.amazonaws.com/", {
+    const res = await fetch(cognitoUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-amz-json-1.1",
@@ -42,7 +43,7 @@ const Signin = () => {
       },
       body: JSON.stringify({
         AuthFlow: "USER_PASSWORD_AUTH",
-        ClientId: cognitoConfig.ClientId,
+        ClientId: cognitoClientId,
         AuthParameters: {
           USERNAME: userEmail,
           PASSWORD: userPassword,
@@ -60,8 +61,7 @@ const Signin = () => {
       throw new Error(message);
     }
 
-    // ✅ IMPORTANT: Use AccessToken instead of IdToken
-    const token = body?.AuthenticationResult?.AccessToken;
+    const token = body?.AuthenticationResult?.IdToken;
 
     if (!token) {
       const requiredAttributesRaw =
@@ -102,7 +102,7 @@ const Signin = () => {
     session: string,
     attributes: { gender?: string; name?: string }
   ) => {
-    const res = await fetch("https://cognito-idp.us-east-1.amazonaws.com/", {
+    const res = await fetch(cognitoUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-amz-json-1.1",
@@ -110,7 +110,7 @@ const Signin = () => {
           "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
       },
       body: JSON.stringify({
-        ClientId: cognitoConfig.ClientId,
+        ClientId: cognitoClientId,
         ChallengeName: "NEW_PASSWORD_REQUIRED",
         Session: session,
         ChallengeResponses: {
@@ -132,8 +132,7 @@ const Signin = () => {
       throw new Error(message);
     }
 
-    // ✅ IMPORTANT: Use AccessToken
-    const token = body?.AuthenticationResult?.AccessToken;
+    const token = body?.AuthenticationResult?.IdToken;
 
     if (!token) {
       throw new Error("Cognito challenge failed: missing token");
@@ -217,8 +216,9 @@ const Signin = () => {
 
       navigate("/dashboard");
     } catch (err: any) {
+      const message = err?.message || "";
       setErrorMessage(
-        err?.message || "Cognito login failed. Please check your credentials."
+        message || "Cognito login failed. Please check your credentials."
       );
     } finally {
       setLoading(false);

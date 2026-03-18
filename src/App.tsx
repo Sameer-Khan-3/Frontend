@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Departments from "./pages/Departments";
 import Employees from "./pages/Employees";
+import Projects from "./pages/Projects";
 import Settings from "./pages/Settings";
 
 function App() {
@@ -60,6 +61,16 @@ function App() {
             <ProtectedRoute allowedRoles={["Admin"]}>
               <DashboardLayout>
                 <Settings />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute allowedRoles={["Manager", "Employee"]}>
+              <DashboardLayout>
+                <Projects />
               </DashboardLayout>
             </ProtectedRoute>
           }
