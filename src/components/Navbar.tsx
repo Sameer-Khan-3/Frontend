@@ -1,4 +1,4 @@
-import { Search, Bell, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 
@@ -14,38 +14,15 @@ export default function Navbar() {
   const { userName, role } = useAuth();
 
   return (
-    <header className="fixed inset-x-0 left-72 top-0 z-30 flex h-[72px] items-center justify-between border-b border-(--border) bg-(--surface)/95 px-6 text-(--text) shadow-(--shadow-soft) backdrop-blur">
-      {/* Search Bar */}
-      <div className="hidden md:flex items-center w-1/2 max-w-xl rounded-2xl border border-(--border) bg-(--surface-2) px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-        <Search size={18} className="text-(--text-muted)" />
-        <input
-          type="text"
-          placeholder="Search users, departments, projects..."
-          className="bg-transparent outline-none ml-2 w-full text-sm text-(--text) placeholder:text-(--text-muted)"
-        />
-      </div>
-
-      {/* Right Section */}
+    <header className="fixed inset-x-0 left-72 top-0 z-30 flex h-[72px] items-center justify-end border-b border-(--border) bg-(--surface)/95 px-6 text-(--text) shadow-(--shadow-soft) backdrop-blur">
       <div className="flex items-center gap-6">
-        {/* Notification */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-(--border) bg-(--surface-2) text-(--text-muted) hover:text-(--accent) transition"
-          >
-            <Bell size={18} />
-          </button>
-          <ThemeToggle />
-        </div>
+        <ThemeToggle />
 
-        {/* User Info */}
         <div className="flex items-center gap-3 rounded-2xl border border-(--border) bg-(--surface-2) px-3 py-2">
-          {/* Avatar */}
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-semibold">
             {getInitials(userName)}
           </div>
 
-          {/* Name + Role */}
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-semibold">
               {userName}
