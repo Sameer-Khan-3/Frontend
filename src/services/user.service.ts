@@ -146,7 +146,7 @@ export const fetchManagerDepartmentId = async () => {
 
 export const updateUser = async (id: string, data: UpdateUserParams) => {
   const token = getAuthToken();
-  const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(id)}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -237,7 +237,7 @@ export const createUser = async (params: CreateUserParams) => {
 
 export const deleteUser = async (id: string) => {
   const token = getAuthToken();
-  const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(id)}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,

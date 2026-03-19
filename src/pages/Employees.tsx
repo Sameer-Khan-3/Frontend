@@ -20,12 +20,15 @@ interface Department {
 
 interface User {
   id: string;
+  localUserId?: string | null;
+  hasLocalProfile?: boolean;
   username: string;
   email: string;
   role?: Role | null;
   isActive: boolean;
   department?: Department;
   createdAt?: string;
+  cognitoStatus?: string | null;
 }
 
 type CreateForm = {
@@ -208,7 +211,7 @@ export default function Employees() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`${BASE_URL}/users/${editingUser.id}`, {
+      const res = await fetch(`${BASE_URL}/users/${encodeURIComponent(editingUser.id)}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -236,7 +239,7 @@ export default function Employees() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`${BASE_URL}/users/${user.id}`, {
+      const res = await fetch(`${BASE_URL}/users/${encodeURIComponent(user.id)}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -582,7 +585,7 @@ export default function Employees() {
                 )}
                 {role === "Admin" && (
                   <td className="p-3">
-                    <span className="px-2 py-1 bg-purple-100 text-purple-600 rounded text-sm">
+                    <span className="rounded px-2 py-1 text-sm bg-purple-100 text-purple-600">
                       {user.department?.name || "Not Assigned"}
                     </span>
                   </td>
@@ -757,7 +760,7 @@ export default function Employees() {
               <button
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
                 onClick={async () => {
-                  await deleteUser(pendingDeleteUser.id);
+                  await deleteUser(pendingDeleteUser.localUserId || pendingDeleteUser.id);
                   setPendingDeleteUser(null);
                 }}
               >

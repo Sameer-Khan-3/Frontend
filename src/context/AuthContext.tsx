@@ -173,7 +173,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!token) return;
     try {
       const payload = parseTokenPayload(token);
-      const res = await fetch(`${API_BASE_URL}/users/me`, {
+      const res = await fetch(`${API_BASE_URL}/auth/sync`, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
