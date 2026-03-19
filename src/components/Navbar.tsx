@@ -1,4 +1,4 @@
-import { Search, Bell } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 
@@ -14,50 +14,26 @@ export default function Navbar() {
   const { userName, role } = useAuth();
 
   return (
-    <header className="h-16 bg-(--surface) border-b border-(--border) flex items-center justify-between px-6 text-(--text)">
-
-      {/* Search Bar */}
-      <div className="flex items-center w-1/3 `bg-(--surface-2) rounded-lg px-3 py-2">
-        <Search size={18} className="text-(--text-muted)" />
-        <input
-          type="text"
-          placeholder="Search..."
-          className="bg-transparent outline-none ml-2 w-full text-sm text-(--text) placeholder:text-(--text-muted)"
-        />
-      </div>
-
-      {/* Right Section */}
+    <header className="fixed inset-x-0 left-72 top-0 z-30 flex h-[72px] items-center justify-end border-b border-(--border) bg-(--surface)/95 px-6 text-(--text) shadow-(--shadow-soft) backdrop-blur">
       <div className="flex items-center gap-6">
+        <ThemeToggle />
 
-        {/* Notification */}
-        <div className="flex items-center gap-3">
-          <Bell size={20} className="text-(--text-muted) cursor-pointer" />
-          <ThemeToggle />
-        </div>
-
-        {/* User Info */}
-        <div className="flex items-center gap-3">
-
-          {/* Avatar */}
-          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+        <div className="flex items-center gap-3 rounded-2xl border border-(--border) bg-(--surface-2) px-3 py-2">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-semibold">
             {getInitials(userName)}
           </div>
 
-          {/* Name + Role */}
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-semibold">
               {userName}
             </span>
-
-            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded w-fit">
+            <span className="inline-flex items-center gap-1 text-xs text-(--accent) bg-(--accent-soft) px-2 py-0.5 rounded-full w-fit">
+              <Sparkles size={12} />
               {role}
             </span>
           </div>
-
         </div>
-
       </div>
-
     </header>
   );
 }

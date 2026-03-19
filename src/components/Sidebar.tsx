@@ -2,7 +2,7 @@ import {
   LayoutDashboard,Users,FolderKanban,CheckSquare,Settings,LogOut,Briefcase,Building2
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AppRole } from "../utils/role";
 
@@ -12,6 +12,7 @@ interface SidebarProps {
 
 export default function Sidebar({ role }: SidebarProps) {
   const { signOut } = useAuth();
+  const location = useLocation();
   const menuItems = [
     {
       name: "Dashboard",
@@ -22,7 +23,7 @@ export default function Sidebar({ role }: SidebarProps) {
     {
       name: "User Management",
       icon: <Briefcase size={18} />,
-      roles: ["Admin", "Manager"],
+      roles: ["Admin", "Manager", "Employee"],
       path:"/employees",
     },
     {
@@ -50,27 +51,45 @@ const handleLogOut = () => {
   Navigate("/signin");
 };
   return (
-    <aside className="w-64 bg-(--surface) border-r border-(--border) h-screen flex flex-col text-(--text)">
+    <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-72 shrink-0 flex-col overflow-hidden border-r border-(--border) bg-(--surface) text-(--text)">
 
       {/* Logo */}
-      <div className="h-16 flex items-center justify-center border-b font-bold text-lg">
-        RBAC System
+      <div className="flex h-20 items-center justify-between border-b border-(--border) px-6">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-(--accent) text-white flex items-center justify-center font-semibold shadow-(--shadow-soft)">
+            RB
+          </div>
+          <div>
+            <div className="text-sm uppercase tracking-[0.2em] text-(--text-muted)">Console</div>
+            <div className="text-lg font-semibold leading-tight">RBAC Studio</div>
+          </div>
+        </div>
       </div>
 
       {/* Menu */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
         {menuItems
           .filter((item) => item.roles.includes(role))
-          .map((item, index) => (
-            <div
-              key={index}
-              onClick={() => Navigate(item.path)}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-(--surface-2) cursor-pointer"
-            >
-              {item.icon}
-              <span className="text-sm font-medium">{item.name}</span>
-            </div>
-          ))}
+          .map((item, index) => {
+            const isActive = location.pathname === item.path;
+
+            return (
+              <div
+                key={index}
+                onClick={() => Navigate(item.path)}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+                  isActive
+                    ? "bg-(--accent-soft) text-(--accent) shadow-(--shadow-soft)"
+                    : "text-(--text) hover:bg-(--surface-2)"
+                }`}
+              >
+                <span className={`${isActive ? "text-(--accent)" : "text-(--text-muted)"} transition`}>
+                  {item.icon}
+                </span>
+                <span>{item.name}</span>
+              </div>
+            );
+          })}
       </nav>
 
       {/* Logout */}
@@ -78,7 +97,7 @@ const handleLogOut = () => {
         <button
           type="button"
           onClick={handleLogOut}
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-red-100 text-red-500 cursor-pointer w-full text-left"
+          className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 transition w-full text-left"
         >
           <LogOut size={18} />
           <span className="text-sm font-medium">Logout</span>

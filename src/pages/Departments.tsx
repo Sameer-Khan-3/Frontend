@@ -5,6 +5,7 @@ import {
   deleteDepartment as deleteDepartmentRequest,
   fetchDepartments as fetchDepartmentsRequest,
 } from "../services/department.service";
+import { Trash } from "lucide-react";
 
 interface Department {
   id: string;
@@ -71,7 +72,17 @@ export default function Departments() {
   }, []);
 
   if (loading) {
-    return <div className="p-10 text-center">Loading departments...</div>;
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="flex flex-col items-center" role="status" aria-live="polite">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-(--border) border-t-(--accent) animate-spin"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Loading departments</span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -88,7 +99,7 @@ export default function Departments() {
       )}
 
       {/* Create Department */}
-      <div className="bg-(--surface) p-4 rounded-lg shadow flex gap-3">
+      <div className="flex flex-wrap gap-3 rounded-lg bg-(--surface) p-4 shadow">
         <input
           type="text"
           placeholder="Department name..."
@@ -107,8 +118,8 @@ export default function Departments() {
       </div>
 
       {/* Department Table */}
-      <div className="bg-(--surface) rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
+      <div className="overflow-x-auto rounded-lg bg-(--surface) shadow">
+        <table className="w-full min-w-[640px] text-left">
           <thead className="bg-(--surface-2)">
             <tr>
               <th className="p-3">S.No</th>
@@ -120,7 +131,7 @@ export default function Departments() {
 
           <tbody>
             {departments.map((dept, index) => (
-              <tr key={dept.id} className="border-t border-(--border) hover:bg-[var(--surface-2)]">
+              <tr key={dept.id} className="border-t border-(--border) hover:bg-(--surface-2)">
                 <td className="p-3">{index + 1}</td>
 
                 <td className="p-3 font-medium">{dept.name}</td>
@@ -130,8 +141,9 @@ export default function Departments() {
                 <td className="p-3">
                   <button
                     onClick={() => deleteDepartment(dept.id)}
-                    className="text-red-600 hover:underline"
+                    className="inline-flex items-center gap-2 text-red-600 hover:underline"
                   >
+                    <Trash size={14}/>
                     Delete
                   </button>
                 </td>

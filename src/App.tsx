@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Departments from "./pages/Departments";
 import Employees from "./pages/Employees";
+import Projects from "./pages/Projects";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -19,9 +21,13 @@ function App() {
 
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/signin" />} />
+
+        {/* Public Routes */}
+        <Route path="/" element={<Navigate to="/signin" />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
+
 
         {/* Protected Dashboard */}
         <Route
@@ -53,10 +59,33 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <DashboardLayout>
+                <Settings />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute allowedRoles={["Manager", "Employee"]}>
+              <DashboardLayout>
+                <Projects />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Error Routes */}
         <Route path="/error" element={<ErrorPage />} />
+        {/* Error Routes */}
+        <Route path="/error" element={<ErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
+
 
       </Routes>
     </BrowserRouter>
@@ -64,3 +93,4 @@ function App() {
 }
 
 export default App;
+

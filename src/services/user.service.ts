@@ -127,13 +127,7 @@ export const fetchManagerDepartmentId = async () => {
       return null;
     }
 
-    const payload = JSON.parse(atob(token.split(".")[1] || ""));
-    const userId = payload?.id;
-    if (!userId) {
-      return null;
-    }
-
-    const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const res = await fetch(`${API_BASE_URL}/users/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -152,7 +146,7 @@ export const fetchManagerDepartmentId = async () => {
 
 export const updateUser = async (id: string, data: UpdateUserParams) => {
   const token = getAuthToken();
-  const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(id)}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -243,7 +237,7 @@ export const createUser = async (params: CreateUserParams) => {
 
 export const deleteUser = async (id: string) => {
   const token = getAuthToken();
-  const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(id)}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,

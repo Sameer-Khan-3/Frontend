@@ -6,6 +6,7 @@ import {
   fetchUsers as fetchUsersRequest,
 } from "../services/user.service";
 import { useAuth } from "../context/AuthContext";
+import { Edit, Trash } from "lucide-react";
 
 interface Role {
   id?: string;
@@ -19,12 +20,15 @@ interface Department {
 
 interface User {
   id: string;
+  localUserId?: string | null;
+  hasLocalProfile?: boolean;
   username: string;
   email: string;
   role?: Role | null;
   isActive: boolean;
   department?: Department;
   createdAt?: string;
+  cognitoStatus?: string | null;
 }
 
 type CreateForm = {
@@ -47,6 +51,7 @@ export default function Employees() {
   const [showCreateCard, setShowCreateCard] = useState(false);
   const [creating, setCreating] = useState(false);
   const [managerDepartmentId, setManagerDepartmentId] = useState<string | null>(null);
+  const [pendingDeleteUser, setPendingDeleteUser] = useState<User | null>(null);
   const [createForm, setCreateForm] = useState<CreateForm>({
     username: "",
     email: "",
@@ -58,10 +63,16 @@ export default function Employees() {
   const { role } = useAuth();
 
   const BASE_URL = API_BASE_URL;
-  const normalizeUser = (user: any): User => ({
-    ...user,
-    role: user.role ?? user.roles?.[0] ?? null,
-  });
+  const normalizeUser = (user: any): User => {
+    const roleValue = user.role ?? null;
+    const role =
+      typeof roleValue === "string" ? { name: roleValue } : roleValue;
+
+    return {
+      ...user,
+      role: role ?? null,
+    };
+  };
 
   const fetchUsers = async () => {
     try {
@@ -104,26 +115,18 @@ export default function Employees() {
         return;
       }
 
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const userId = payload?.id;
-      if (!userId) {
-        setManagerDepartmentId(null);
-        return;
-      }
-
-      const res = await fetch(`${BASE_URL}/users/${userId}`, {
+      const res = await fetch(`${BASE_URL}/users/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!res.ok) {
-        setManagerDepartmentId(null);
-        return;
+        throw new Error("Failed to fetch manager profile");
       }
 
-      const data = await res.json();
-      setManagerDepartmentId(data?.department?.id ?? null);
+      const user = await res.json();
+      setManagerDepartmentId(user?.department?.id || null);
     } catch (error) {
       console.error("Fetch manager department error:", error);
       setManagerDepartmentId(null);
@@ -131,8 +134,6 @@ export default function Employees() {
   };
 
   const deleteUser = async (id: string) => {
-    if (!confirm("Delete this user?")) return;
-
     try {
       await deleteUserRequest(id);
       setUsers((prev) => prev.filter((u) => u.id !== id));
@@ -166,7 +167,6 @@ export default function Employees() {
         body: JSON.stringify({
           username: createForm.username.trim(),
           email: createForm.email.trim(),
-          password: "Temp@123456",
         }),
       });
 
@@ -211,27 +211,32 @@ export default function Employees() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`${BASE_URL}/users/${editingUser.id}`, {
+      const res = await fetch(`${BASE_URL}/users/${encodeURIComponent(editingUser.id)}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          username: editingUser.username,
-          email: editingUser.email,
-          role: editingUser.role?.name,
+          username: editingUser.username.trim(),
+          email: editingUser.email.trim(),
+          role: editingUser.role?.name || "Employee",
           isActive: editingUser.isActive,
           departmentId: editingUser.department?.id ?? null,
         }),
       });
 
-      await res.json();
+      const body = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(body?.message || "Failed to update user");
+      }
 
       setEditingUser(null);
       fetchUsers();
     } catch (error) {
       console.error(error);
+      alert(error instanceof Error ? error.message : "Failed to update user");
     }
   };
 
@@ -239,7 +244,7 @@ export default function Employees() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`${BASE_URL}/users/${user.id}`, {
+      const res = await fetch(`${BASE_URL}/users/${encodeURIComponent(user.id)}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -248,7 +253,7 @@ export default function Employees() {
         body: JSON.stringify({
           username: user.username,
           email: user.email,
-          role: user.role?.name,
+          role: user.role?.name || "Employee",
           isActive: !user.isActive,
           departmentId: user.department?.id ?? null,
         }),
@@ -277,7 +282,7 @@ export default function Employees() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
-    }, 2000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [search]);
@@ -359,11 +364,21 @@ export default function Employees() {
   };
 
   if (loading) {
-    return <div className="text-center p-10">Loading users...</div>;
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="flex flex-col items-center" role="status" aria-live="polite">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-(--border) border-t-(--accent) animate-spin"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Loading users</span>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">
           {role === "Admin" && "User Management"}
@@ -373,7 +388,7 @@ export default function Employees() {
 
         {(role === "Admin" || role === "Manager") && (
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+            className="bg-blue-600 text-white px-2 py-2 rounded-lg"
             onClick={() => setShowCreateCard((prev) => !prev)}
           >
             {showCreateCard ? "Close" : "Create User"}
@@ -393,9 +408,8 @@ export default function Employees() {
       )}
 
       {(role === "Admin" || role === "Manager") && showCreateCard && (
-        <div className="bg-(--surface) p-4 rounded-lg shadow space-y-4">
+        <div className="bg-(--surface) p-3 rounded-lg shadow space-y-2">
           <h2 className="text-lg font-semibold">Create User</h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-(--text-muted)">Name</label>
@@ -471,7 +485,7 @@ export default function Employees() {
       )}
 
 
-      <div className="bg-(--surface) p-4 rounded-lg shadow flex gap-4">
+      <div className="flex flex-wrap gap-4 rounded-lg bg-(--surface) p-3 shadow">
         <input
           type="text" placeholder="Search users..."
           className="border border-(--border) bg-(--surface) text-(--text) placeholder:text-(--text-muted) px-3 py-2 rounded-lg w-64"
@@ -501,8 +515,8 @@ export default function Employees() {
       </div>
 
       
-      <div className="bg-(--surface) rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
+      <div className="overflow-x-auto rounded-lg bg-(--surface) shadow">
+        <table className="w-full min-w-[720px] text-left">
           <thead className="bg-(--surface-2)">
             <tr>
               <th className="p-3">S.No</th>
@@ -527,7 +541,7 @@ export default function Employees() {
 
                 <td className="p-3">
                   <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-sm">
-                    {user.role?.name}
+                    {user.role?.name || "Employee"}
                   </span>
                 </td>
 
@@ -545,17 +559,23 @@ export default function Employees() {
 
                 {role === "Admin" && (
                   <td className="p-3">
-                    <button
-                      onClick={() => setEditingUser(user)}
-                      className="bg-blue-400 text-white px-3 py-1 rounded hover:bg-blue-700">
-                      Edit
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                      >
+                        <Edit size={14} />
+                        Edit
+                      </button>
 
-                    <button
-                      onClick={() => deleteUser(user.id)}
-                      className="bg-red-400 text-white px-3 py-1 rounded hover:bg-red-700 ml-3">
-                      Delete
-                    </button>
+                      <button
+                        onClick={() => setPendingDeleteUser(user)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                      >
+                        <Trash size={14} />
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 )}
                 {role === "Manager" && (
@@ -570,7 +590,7 @@ export default function Employees() {
                 )}
                 {role === "Admin" && (
                   <td className="p-3">
-                    <span className="px-2 py-1 bg-purple-100 text-purple-600 rounded text-sm">
+                    <span className="rounded px-2 py-1 text-sm bg-purple-100 text-purple-600">
                       {user.department?.name || "Not Assigned"}
                     </span>
                   </td>
@@ -635,7 +655,7 @@ export default function Employees() {
 
       {editingUser && (
         <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center">
-          <div className="bg-(--surface) p-6 rounded-lg shadow w-96 space-y-4">
+          <div className="bg-(--surface) p-6 rounded-lg shadow w-96 space-y-4 cursor-pointer">
             <h2 className="text-lg font-semibold">Edit User</h2>
 
             <input
@@ -664,6 +684,7 @@ export default function Employees() {
                 })
               }
             >
+              <option>Admin</option>
               <option>Manager</option>
               <option>Employee</option>
             </select>
@@ -714,9 +735,42 @@ export default function Employees() {
 
               <button
                 onClick={handleUpdate}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingDeleteUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-(--surface) p-6 shadow-(--shadow-strong)">
+            <h3 className="text-lg font-semibold">Delete user?</h3>
+            <p className="mt-2 text-sm text-(--text-muted)">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-(--text)">
+                {pendingDeleteUser.username}
+              </span>
+              ? This action cannot be undone.
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                className="rounded-lg border border-(--border) px-4 py-2 text-sm font-semibold text-(--text)"
+                onClick={() => setPendingDeleteUser(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                onClick={async () => {
+                  await deleteUser(pendingDeleteUser.localUserId || pendingDeleteUser.id);
+                  setPendingDeleteUser(null);
+                }}
+              >
+                Delete
               </button>
             </div>
           </div>
