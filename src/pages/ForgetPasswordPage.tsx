@@ -212,7 +212,6 @@ export default function ForgetPassword() {
         </form>
 
         <p className="mt-6 text-center text-sm text-(--text-muted)">
-        <p className="mt-6 text-center text-sm text-(--text-muted)">
           Remember your password?{" "}
           <span
             onClick={() => navigate("/signin")}

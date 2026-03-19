@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {
+  loginWithCognito,
+  respondToNewPasswordChallenge,
+} from "../api/cognitoAuth";
 
 const Signin = () => {
   const navigate = useNavigate();
   const { signIn } = useAuth();
-  const cognitoUrl = import.meta.env.VITE_COGNITO_URL as string;
-  const cognitoClientId = import.meta.env.VITE_COGNITO_CLIENT_ID as string;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,126 +22,6 @@ const Signin = () => {
   const [newPassword, setNewPassword] = useState("");
   const [challengeGender, setChallengeGender] = useState("");
   const [challengeName, setChallengeName] = useState("");
-
-  type CognitoLoginResult =
-    | { token: string }
-    | {
-        challenge: {
-          name: string;
-          session: string;
-          requiredAttributes: string[];
-        };
-      };
-
-  const loginWithCognito = async (
-    userEmail: string,
-    userPassword: string
-  ): Promise<CognitoLoginResult> => {
-    const res = await fetch(cognitoUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-amz-json-1.1",
-        "X-Amz-Target": "AWSCognitoIdentityProviderService.InitiateAuth",
-      },
-      body: JSON.stringify({
-        AuthFlow: "USER_PASSWORD_AUTH",
-        ClientId: cognitoClientId,
-        AuthParameters: {
-          USERNAME: userEmail,
-          PASSWORD: userPassword,
-        },
-      }),
-    });
-
-    const body = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      const message =
-        body?.message ||
-        body?.__type ||
-        `Cognito login failed (${res.status})`;
-      throw new Error(message);
-    }
-
-    const token = body?.AuthenticationResult?.IdToken;
-
-    if (!token) {
-      const requiredAttributesRaw =
-        body?.ChallengeParameters?.requiredAttributes;
-
-      let requiredAttributes: string[] = [];
-
-      if (typeof requiredAttributesRaw === "string") {
-        try {
-          const parsed = JSON.parse(requiredAttributesRaw);
-          if (Array.isArray(parsed)) {
-            requiredAttributes = parsed;
-          }
-        } catch {
-          requiredAttributes = [];
-        }
-      }
-
-      if (body?.ChallengeName && body?.Session) {
-        return {
-          challenge: {
-            name: body.ChallengeName as string,
-            session: body.Session as string,
-            requiredAttributes,
-          },
-        };
-      }
-
-      throw new Error("Cognito login failed: missing token");
-    }
-
-    return { token: token as string };
-  };
-
-  const respondToNewPasswordChallenge = async (
-    userEmail: string,
-    nextPassword: string,
-    session: string,
-    attributes: { gender?: string; name?: string }
-  ) => {
-    const res = await fetch(cognitoUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-amz-json-1.1",
-        "X-Amz-Target":
-          "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
-      },
-      body: JSON.stringify({
-        ClientId: cognitoClientId,
-        ChallengeName: "NEW_PASSWORD_REQUIRED",
-        Session: session,
-        ChallengeResponses: {
-          USERNAME: userEmail,
-          NEW_PASSWORD: nextPassword,
-          "userAttributes.gender": attributes.gender,
-          "userAttributes.name": attributes.name,
-        },
-      }),
-    });
-
-    const body = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      const message =
-        body?.message ||
-        body?.__type ||
-        `Cognito challenge failed (${res.status})`;
-      throw new Error(message);
-    }
-
-    const token = body?.AuthenticationResult?.IdToken;
-
-    if (!token) {
-      throw new Error("Cognito challenge failed: missing token");
-    }
-
-    return token as string;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

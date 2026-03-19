@@ -2,13 +2,9 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { AppRole } from "../utils/role";
 import { useAuth } from "../context/AuthContext";
-import { Navigate, useLocation } from "react-router-dom";
-import { AppRole } from "../utils/role";
-import { useAuth } from "../context/AuthContext";
 
 interface Props {
   children: React.ReactNode;
-  allowedRoles?: AppRole[];
   allowedRoles?: AppRole[];
 }
 

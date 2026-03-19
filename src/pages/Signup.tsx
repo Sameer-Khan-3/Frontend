@@ -4,10 +4,9 @@ import {
   confirmSignUpWithCognito,
   signUpWithCognito,
 } from "../api/cognitoAuth";
-import { API_BASE_URL } from "../api/baseUrl";
+import { completeSignupProfile } from "../api/authApi";
 
 const Signup: React.FC = () => {
-  const navigate = useNavigate();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [gender, setGender] = useState("");
@@ -41,30 +40,16 @@ const Signup: React.FC = () => {
     try {
       if (awaitingConfirmation) {
         await confirmSignUpWithCognito(email.trim(), confirmationCode.trim());
-
-        const profileResponse = await fetch(`${API_BASE_URL}/auth/signup`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            username: username.trim(),
-            gender: gender.trim(),
-          }),
+        await completeSignupProfile({
+          email: email.trim(),
+          username: username.trim(),
+          gender: gender.trim(),
         });
-
-        const profileData = await profileResponse.json().catch(() => null);
-        if (!profileResponse.ok) {
-          throw new Error(profileData?.message || "Failed to create user profile");
-        }
 
         setMessage("Email verified successfully! Redirecting to login...");
         setTimeout(() => navigate("/signin"), 500);
         return;
       }
-      setMessage(`Signup successful! Redirecting to login...`);
-
       await signUpWithCognito({
         username: username.trim(),
         gender: gender.trim(),
@@ -215,7 +200,6 @@ const Signup: React.FC = () => {
           </p>
         )}
 
-        <p className="mt-6 text-center text-sm text-(--text-muted)">
         <p className="mt-6 text-center text-sm text-(--text-muted)">
           Already have an account?{" "}
           <Link

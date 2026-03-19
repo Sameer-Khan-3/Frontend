@@ -218,20 +218,25 @@ export default function Employees() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          username: editingUser.username,
-          email: editingUser.email,
+          username: editingUser.username.trim(),
+          email: editingUser.email.trim(),
           role: editingUser.role?.name || "Employee",
           isActive: editingUser.isActive,
           departmentId: editingUser.department?.id ?? null,
         }),
       });
 
-      await res.json();
+      const body = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(body?.message || "Failed to update user");
+      }
 
       setEditingUser(null);
       fetchUsers();
     } catch (error) {
       console.error(error);
+      alert(error instanceof Error ? error.message : "Failed to update user");
     }
   };
 
@@ -679,6 +684,7 @@ export default function Employees() {
                 })
               }
             >
+              <option>Admin</option>
               <option>Manager</option>
               <option>Employee</option>
             </select>

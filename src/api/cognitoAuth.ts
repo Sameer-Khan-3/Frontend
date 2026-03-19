@@ -12,6 +12,16 @@ export const getCognitoTokenPayload = (token: string) => {
   }
 };
 
+export type CognitoLoginResult =
+  | { token: string }
+  | {
+      challenge: {
+        name: string;
+        session: string;
+        requiredAttributes: string[];
+      };
+    };
+
 async function sendCognitoRequest(
   target: string,
   payload: Record<string, unknown>
@@ -86,4 +96,83 @@ export async function confirmForgotPassword(
       Password: newPassword,
     }
   );
+}
+
+export async function loginWithCognito(
+  email: string,
+  password: string
+): Promise<CognitoLoginResult> {
+  const body = await sendCognitoRequest(
+    "AWSCognitoIdentityProviderService.InitiateAuth",
+    {
+      AuthFlow: "USER_PASSWORD_AUTH",
+      ClientId: cognitoClientId,
+      AuthParameters: {
+        USERNAME: email,
+        PASSWORD: password,
+      },
+    }
+  );
+
+  const token = body?.AuthenticationResult?.IdToken;
+
+  if (token) {
+    return { token: token as string };
+  }
+
+  const requiredAttributesRaw = body?.ChallengeParameters?.requiredAttributes;
+  let requiredAttributes: string[] = [];
+
+  if (typeof requiredAttributesRaw === "string") {
+    try {
+      const parsed = JSON.parse(requiredAttributesRaw);
+      if (Array.isArray(parsed)) {
+        requiredAttributes = parsed;
+      }
+    } catch {
+      requiredAttributes = [];
+    }
+  }
+
+  if (body?.ChallengeName && body?.Session) {
+    return {
+      challenge: {
+        name: body.ChallengeName as string,
+        session: body.Session as string,
+        requiredAttributes,
+      },
+    };
+  }
+
+  throw new Error("Cognito login failed: missing token");
+}
+
+export async function respondToNewPasswordChallenge(
+  email: string,
+  nextPassword: string,
+  session: string,
+  attributes: { gender?: string; name?: string }
+) {
+  const body = await sendCognitoRequest(
+    "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
+    {
+      ClientId: cognitoClientId,
+      ChallengeName: "NEW_PASSWORD_REQUIRED",
+      Session: session,
+      ChallengeResponses: {
+        USERNAME: email,
+        NEW_PASSWORD: nextPassword,
+        "userAttributes.gender": attributes.gender,
+        "userAttributes.name": attributes.name,
+      },
+    }
+  );
+
+  const token = body?.AuthenticationResult?.IdToken;
+
+  if (!token) {
+    throw new Error("Cognito challenge failed: missing token");
+  }
+
+  return token as string;
 }
