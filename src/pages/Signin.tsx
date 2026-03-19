@@ -288,8 +288,7 @@ const Signin = () => {
             </>
           )}
 
-          <button
-            type="submit"
+          <button type="submit"
             disabled={loading}
             className="w-full py-3 text-white bg-(--accent) rounded-xl"
           >
