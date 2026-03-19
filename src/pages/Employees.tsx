@@ -170,11 +170,11 @@ export default function Employees() {
         }),
       });
 
-      if (!createRes.ok) {
-        throw new Error("Failed to create user");
-      }
+      const createdUser = await createRes.json().catch(() => null);
 
-      const createdUser = await createRes.json();
+      if (!createRes.ok) {
+        throw new Error(createdUser?.message || "Failed to create user");
+      }
 
       if (createDepartmentId) {
         await fetch(`${BASE_URL}/departments/assign-user`, {
@@ -197,9 +197,12 @@ export default function Employees() {
       });
       setShowCreateCard(false);
       fetchUsers();
+      if (createdUser?.message) {
+        alert(createdUser.message);
+      }
     } catch (error) {
       console.error("Create user error:", error);
-      alert("Failed to create user");
+      alert(error instanceof Error ? error.message : "Failed to create user");
     } finally {
       setCreating(false);
     }
