@@ -21,9 +21,6 @@ function App() {
 
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/signin" />} />
-
-        {/* Public Routes */}
-        <Route path="/" element={<Navigate to="/signin" />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
@@ -80,9 +77,6 @@ function App() {
           }
         />
 
-        {/* Error Routes */}
-        <Route path="/error" element={<ErrorPage />} />
-        {/* Error Routes */}
         <Route path="/error" element={<ErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
 
