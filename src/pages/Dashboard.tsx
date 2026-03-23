@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   Users,
@@ -37,6 +37,7 @@ export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
   const [inactiveUsers, setInactiveUsers] = useState(0);
+  const [currentDepartment, setCurrentDepartment] = useState<string | null>(null);
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
   const [topDepartments, setTopDepartments] = useState<
     { id: string; name: string; count: number; manager?: string | null }[]
@@ -59,6 +60,7 @@ export default function Dashboard() {
       setTotalUsers(metrics.totalUsers ?? 0);
       setActiveUsers(metrics.activeUsers ?? 0);
       setInactiveUsers(metrics.inactiveUsers ?? 0);
+      setCurrentDepartment(metrics.currentDepartment ?? null);
       setRecentUsers(Array.isArray(metrics.recentUsers) ? metrics.recentUsers : []);
       setTopDepartments(
         Array.isArray(metrics.topDepartments) ? metrics.topDepartments : []
@@ -70,6 +72,7 @@ export default function Dashboard() {
       setTotalUsers(0);
       setActiveUsers(0);
       setInactiveUsers(0);
+      setCurrentDepartment(null);
       setRecentUsers([]);
       setTopDepartments([]);
       setError(err instanceof Error ? err.message : "Failed to load dashboard data");
@@ -152,6 +155,11 @@ export default function Dashboard() {
           <p className="text-(--text-muted)">
             Role-based metrics curated for {role || "your"} workspace.
           </p>
+          {role === "Manager" && currentDepartment && (
+            <p className="mt-2 text-sm font-medium text-(--accent)">
+              Department: {currentDepartment}
+            </p>
+          )}
         </div>
         <div className="rounded-2xl bg-(--surface-2) px-4 py-3 text-sm text-(--text-muted)">
           Updated just now
