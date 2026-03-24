@@ -1,19 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  CognitoCodeDeliveryDetails,
   confirmForgotPassword,
   startForgotPassword,
 } from "../api/cognitoAuth";
-
-const formatDeliveryMessage = (details: CognitoCodeDeliveryDetails | null) => {
-  if (!details?.destination) {
-    return "Verification code sent. Enter it below with your new password.";
-  }
-
-  const medium = details.deliveryMedium?.toLowerCase() || "your email";
-  return `Verification code sent via ${medium} to ${details.destination}. Enter it below with your new password.`;
-};
 
 export default function ForgetPassword() {
   const navigate = useNavigate();
@@ -60,19 +50,19 @@ export default function ForgetPassword() {
     if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
-    const normalizedEmail = email.trim().toLowerCase();
 
     try {
       if (!awaitingCode) {
-        const result = await startForgotPassword(normalizedEmail);
+        await startForgotPassword(email.trim());
         setAwaitingCode(true);
-        setEmail(normalizedEmail);
-        setMessage(formatDeliveryMessage(result.codeDeliveryDetails));
+        setMessage(
+          "Verification code sent. Enter it below with your new password."
+        );
         return;
       }
 
       await confirmForgotPassword(
-        normalizedEmail,
+        email.trim(),
         verificationCode.trim(),
         newPassword
       );
