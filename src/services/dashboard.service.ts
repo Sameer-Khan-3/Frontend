@@ -7,6 +7,7 @@ export type DashboardMetrics = {
   totalUsers: number;
   activeUsers: number;
   inactiveUsers: number;
+  currentDepartment?: string | null;
   recentUsers: any[];
   topDepartments: { id: string; name: string; count: number; manager?: string | null }[];
 };

@@ -4,6 +4,12 @@ const cognitoClientId = import.meta.env.VITE_COGNITO_CLIENT_ID as string;
 const parseCognitoMessage = (body: any, fallback: string) =>
   body?.message || body?.__type || fallback;
 
+export type CognitoCodeDeliveryDetails = {
+  destination?: string;
+  deliveryMedium?: string;
+  attributeName?: string;
+};
+
 export const getCognitoTokenPayload = (token: string) => {
   try {
     return JSON.parse(atob(token.split(".")[1] || ""));
@@ -72,14 +78,28 @@ export async function confirmSignUpWithCognito(email: string, code: string) {
   });
 }
 
-export async function startForgotPassword(email: string) {
-  return sendCognitoRequest(
+export async function startForgotPassword(
+  email: string
+): Promise<{
+  codeDeliveryDetails: CognitoCodeDeliveryDetails | null;
+}> {
+  const body = await sendCognitoRequest(
     "AWSCognitoIdentityProviderService.ForgotPassword",
     {
       ClientId: cognitoClientId,
       Username: email,
     }
   );
+
+  return {
+    codeDeliveryDetails: body?.CodeDeliveryDetails
+      ? {
+          destination: body.CodeDeliveryDetails.Destination,
+          deliveryMedium: body.CodeDeliveryDetails.DeliveryMedium,
+          attributeName: body.CodeDeliveryDetails.AttributeName,
+        }
+      : null,
+  };
 }
 
 export async function confirmForgotPassword(

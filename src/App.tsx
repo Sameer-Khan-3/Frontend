@@ -80,7 +80,6 @@ function App() {
           }
         />
 
-        {/* Error Routes */}
         <Route path="/error" element={<ErrorPage />} />
         {/* Error Routes */}
         <Route path="/error" element={<ErrorPage />} />
