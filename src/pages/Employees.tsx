@@ -6,7 +6,7 @@ import {
   fetchUsers as fetchUsersRequest,
 } from "../services/user.service";
 import { useAuth } from "../context/AuthContext";
-import { Edit, Trash } from "lucide-react";
+import { CheckCircle2, CircleAlert, Edit, Trash, X } from "lucide-react";
 
 interface Role {
   id?: string;
@@ -35,7 +35,15 @@ type CreateForm = {
   username: string;
   email: string;
   departmentId: string;
+  role: "Admin" | "Manager" | "Employee";
 };
+
+type ToastState =
+  | {
+      type: "success" | "error";
+      message: string;
+    }
+  | null;
 
 export default function Employees() {
   const [users, setUsers] = useState<User[]>([]);
@@ -52,10 +60,12 @@ export default function Employees() {
   const [creating, setCreating] = useState(false);
   const [managerDepartmentId, setManagerDepartmentId] = useState<string | null>(null);
   const [pendingDeleteUser, setPendingDeleteUser] = useState<User | null>(null);
+  const [toast, setToast] = useState<ToastState>(null);
   const [createForm, setCreateForm] = useState<CreateForm>({
     username: "",
     email: "",
     departmentId: "",
+    role: "Employee",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
@@ -144,11 +154,14 @@ export default function Employees() {
 
   const handleCreateUser = async () => {
     if (!createForm.username.trim() || !createForm.email.trim()) {
-      alert("Name and email are required");
+      setToast({ type: "error", message: "Name and email are required" });
       return;
     }
     if (role === "Manager" && !managerDepartmentId) {
-      alert("You must be assigned to a department before creating users.");
+      setToast({
+        type: "error",
+        message: "You must be assigned to a department before creating users.",
+      });
       return;
     }
     try {
@@ -167,6 +180,7 @@ export default function Employees() {
         body: JSON.stringify({
           username: createForm.username.trim(),
           email: createForm.email.trim(),
+          role: role === "Manager" ? "Employee" : createForm.role,
         }),
       });
 
@@ -194,15 +208,20 @@ export default function Employees() {
         username: "",
         email: "",
         departmentId: "",
+        role: "Employee",
       });
       setShowCreateCard(false);
       fetchUsers();
-      if (createdUser?.message) {
-        alert(createdUser.message);
-      }
+      setToast({
+        type: "success",
+        message: createdUser?.message || "User created successfully.",
+      });
     } catch (error) {
       console.error("Create user error:", error);
-      alert(error instanceof Error ? error.message : "Failed to create user");
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to create user",
+      });
     } finally {
       setCreating(false);
     }
@@ -292,6 +311,18 @@ export default function Employees() {
     setCurrentPage(1);
   }, [debouncedSearch, roleFilter, sortBy]);
 
+  useEffect(() => {
+    if (!toast) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3500);
+
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
   const filteredUsers = users
     .filter((user) => {
       const matchesSearch = `${user.username} ${user.email} ${user.role?.name}`
@@ -380,6 +411,39 @@ export default function Employees() {
 
   return (
     <div className="space-y-3">
+      {toast && (
+        <div className="fixed right-4 top-4 z-50 max-w-sm">
+          <div
+            className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg ${
+              toast.type === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-red-200 bg-red-50 text-red-900"
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            {toast.type === "success" ? (
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            ) : (
+              <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+            )}
+
+            <div className="min-w-0 flex-1 text-sm font-medium">
+              {toast.message}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              className="rounded p-1 text-current/70 transition hover:bg-black/5 hover:text-current"
+              aria-label="Dismiss notification"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">
           {role === "Admin" && "User Management"}
@@ -439,6 +503,26 @@ export default function Employees() {
 
             {role === "Admin" && (
               <div>
+                <label className="text-sm text-(--text-muted)">Role</label>
+                <select
+                  className="w-full border border-(--border) bg-(--surface) text-(--text) p-2 rounded mt-1"
+                  value={createForm.role}
+                  onChange={(e) =>
+                    setCreateForm({
+                      ...createForm,
+                      role: e.target.value as "Admin" | "Manager" | "Employee",
+                    })
+                  }
+                >
+                  <option value="Employee">Employee</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+            )}
+
+            {role === "Admin" && (
+              <div>
                 <label className="text-sm text-(--text-muted)">
                   Department
                 </label>
@@ -468,7 +552,7 @@ export default function Employees() {
             )}
             {role === "Manager" && (
               <div className="text-sm text-(--text-muted)">
-                New users will be assigned to your department.
+                New users will be created as Employee in your department.
               </div>
             )}
           </div>
